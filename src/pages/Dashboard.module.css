@@ -1,0 +1,7 @@
+.dashboardRoot {
+  min-height: 100vh;
+  background: linear-gradient(133deg, #eaf0fe 0%, #fff 90%);
+}
+.dashboardHeader {
+  background: rgba(255,255,255,0.97);
+}
