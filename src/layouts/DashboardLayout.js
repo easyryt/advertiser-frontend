@@ -53,10 +53,6 @@ export default function DashboardLayout() {
   const activePage = (() => {
     const path = location.pathname;
     if (path.startsWith("/dashboard/campaigns")) return "Campaigns";
-    if (path.startsWith("/dashboard/users")) return "Users";
-    if (path.startsWith("/dashboard/products")) return "Products";
-    if (path.startsWith("/dashboard/analytics")) return "Analytics";
-    if (path.startsWith("/dashboard/messages")) return "Messages";
     if (path.startsWith("/dashboard/settings")) return "Settings";
     if (path.startsWith("/profile-page")) return "Profile";
     if (path.startsWith("/dashboard")) return "Dashboard";
@@ -92,15 +88,6 @@ export default function DashboardLayout() {
   const navItems = [
     { text: "Dashboard", icon: "Dashboard", path: "/dashboard" },
     { text: "Campaigns", icon: "BallotIcon", path: "/dashboard/campaigns" },
-    { text: "Users", icon: "People", path: "/dashboard/users" },
-    { text: "Products", icon: "Inventory", path: "/dashboard/products" },
-    { text: "Analytics", icon: "BarChart", path: "/dashboard/analytics" },
-    {
-      text: "Messages",
-      icon: "Messages",
-      path: "/dashboard/messages",
-      badge: 4,
-    },
     { text: "Settings", icon: "Settings", path: "/dashboard/settings" },
     { text: "Profile", icon: "People", path: "/profile-page" },
   ];

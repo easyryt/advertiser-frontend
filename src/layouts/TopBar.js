@@ -1,5 +1,5 @@
 // TopBar.js
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
   AppBar,
   Toolbar,
@@ -11,10 +11,11 @@ import {
   Badge,
   styled,
   useTheme,
-  useMediaQuery
+  useMediaQuery,
 } from "@mui/material";
 import NotificationsIcon from "@mui/icons-material/Notifications";
 import MenuIcon from "@mui/icons-material/Menu";
+import axios from "axios";
 
 const StyledAppBar = styled(AppBar)(({ theme }) => ({
   backgroundColor: "#fff",
@@ -27,95 +28,75 @@ const StyledAppBar = styled(AppBar)(({ theme }) => ({
   width: "100%",
 }));
 
-const BalanceText = styled("span")({
-  color: "#3b82f6",
-  fontWeight: 600,
-  fontSize: "14px",
-  marginRight: "4px",
-});
-
-const AddButton = styled(Button)({
-  backgroundColor: "#3b82f6",
-  color: "#fff",
-  textTransform: "none",
-  fontSize: "12px",
-  minWidth: "40px",
-  height: "28px",
-  padding: "0 8px",
-  marginLeft: "4px",
-  "&:hover": {
-    backgroundColor: "#2563eb",
-  },
-});
-
 export default function TopBar({
   toggleDrawer,
   activePage,
   handleMenuOpen,
-  user
+  user,
 }) {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const isSmallScreen = useMediaQuery(theme.breakpoints.down("md"));
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [nameValue, setNameValue] = useState('');
+
+    const fetchProfile = async () => {
+      setLoading(true);
+      setError('');
+      try {
+        const response = await axios.get('https://advertiserappnew.onrender.com/adv/auth/profile', { withCredentials: true });
+        setNameValue(response.data.message?.name || '');
+      } catch (err) {
+        setError(err?.response?.data?.message || err.message || 'Failed to fetch profile');
+      } finally {
+        setLoading(false);
+      }
+    };
+  
+    useEffect(() => {
+      fetchProfile();
+      // eslint-disable-next-line
+    }, []);
 
   return (
     <StyledAppBar position="fixed">
-      <Toolbar sx={{ 
-        justifyContent: "space-between", 
-        px: { xs: 1, sm: 2 },
-        minHeight: "56px !important"
-      }}>
+      <Toolbar
+        sx={{
+          justifyContent: "space-between",
+          px: { xs: 1, sm: 2 },
+          minHeight: "56px !important",
+        }}
+      >
         {/* Left Section */}
         <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
-          <IconButton 
-            size="small" 
-            color="inherit"
-            onClick={toggleDrawer}
-          >
+          <IconButton size="small" color="inherit" onClick={toggleDrawer}>
             <MenuIcon />
           </IconButton>
-          <Typography 
-            variant="subtitle1" 
+          <Typography
+            variant="subtitle1"
             fontWeight={600}
-            sx={{ fontSize: { xs: '0.9rem', sm: '1rem' } }}
+            sx={{ fontSize: { xs: "0.9rem", sm: "1rem" } }}
           >
             {activePage}
           </Typography>
         </Box>
 
         {/* Right Section */}
-        <Box sx={{ 
-          display: "flex", 
-          alignItems: "center", 
-          gap: { xs: 1, sm: 2 }
-        }}>
-          {!isSmallScreen && (
-            <Box sx={{ 
-              display: "flex", 
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            gap: { xs: 1, sm: 2 },
+          }}
+        >
+          <Box
+            sx={{
+              display: "flex",
               alignItems: "center",
-              mr: { xs: 0, sm: 1 }
-            }}>
-              <Typography 
-                variant="body2" 
-                sx={{ 
-                  color: "gray", 
-                  fontWeight: 500, 
-                  mr: 1,
-                  fontSize: { xs: '0.75rem', sm: '0.875rem' }
-                }}
-              >
-                Balance
-              </Typography>
-              <BalanceText>$12.50</BalanceText>
-              <AddButton variant="contained">+ Add</AddButton>
-            </Box>
-          )}
-
-          <Box sx={{ 
-            display: "flex", 
-            alignItems: "center", 
-            gap: { xs: 0.5, sm: 1.5 }
-          }}>
+              gap: { xs: 0.5, sm: 1.5 },
+            }}
+          >
             {!isMobile && (
               <Typography
                 variant="body2"
@@ -126,26 +107,20 @@ export default function TopBar({
                   py: 0.5,
                   fontWeight: 600,
                   fontSize: "14px",
-                  display: { xs: 'none', sm: 'block' }
+                  display: { xs: "none", sm: "block" },
                 }}
               >
-                Hi, {user?.name || "Guest"}
+                Hi, {nameValue || "Advertiser"}
               </Typography>
             )}
 
-            <IconButton size="small">
-              <Badge badgeContent={4} color="error">
-                <NotificationsIcon fontSize={isMobile ? "small" : "medium"} />
-              </Badge>
-            </IconButton>
-
             <IconButton onClick={handleMenuOpen} size="small">
-              <Avatar 
-                src={user?.avatar} 
-                alt={user?.name} 
-                sx={{ 
-                  width: { xs: 28, sm: 32 }, 
-                  height: { xs: 28, sm: 32 } 
+              <Avatar
+                src={user?.avatar}
+                alt={nameValue ? nameValue : "Advertiser"}
+                sx={{
+                  width: { xs: 28, sm: 32 },
+                  height: { xs: 28, sm: 32 },
                 }}
               />
             </IconButton>
