@@ -1,12 +1,11 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import {
-  Box, Card, CardContent, Typography, Grid,
+  Box, Card, Typography, Grid,
   Paper, Table, TableBody, TableCell,
   TableContainer, TableHead, TableRow,
   LinearProgress, useTheme, Fade, Grow, Slide,
-  IconButton, Tooltip, Avatar, Tabs, Tab,
-  Divider, Chip, Stack, alpha, Skeleton, Alert,
+  IconButton, Tooltip, Avatar, Divider, Chip, Stack, alpha, Skeleton, Alert,
   Button, Dialog, DialogTitle, DialogContent, 
   DialogActions, TextField, MenuItem, Select,
   FormControl, InputLabel
@@ -17,10 +16,9 @@ import {
   PieChart, Pie, Cell
 } from "recharts";
 import {
-  ArrowUpward, ArrowDownward, MoreVert, TrendingUp, TrendingDown, FilterList,
+  ArrowUpward, ArrowDownward, FilterList,
   Refresh, Campaign, MonetizationOn, AttachMoney,
   PieChart as PieChartIcon, BarChart as BarChartIcon,
-  Settings, Notifications, Search, Dashboard as DashboardIcon,
   Close, Check
 } from "@mui/icons-material";
 import { motion } from "framer-motion";
@@ -46,12 +44,12 @@ const INITIAL_FILTERS = {
 const formatCurrency = value =>
   new Intl.NumberFormat("en-US", {
     style: "currency", currency: "USD", maximumFractionDigits: 0
-  }).format(value);
+  }).format(value ?? 0);
 
 const formatPercent = value =>
   value !== undefined ? `${(value * 100).toFixed(1)}%` : "0.0%";
 
-const formatNumber = value => new Intl.NumberFormat("en-US").format(value);
+const formatNumber = value => new Intl.NumberFormat("en-US").format(value ?? 0);
 
 // --------- STATUS COLOR ---------
 const useStatusColor = () => {
@@ -64,7 +62,7 @@ const useStatusColor = () => {
       paused: theme.palette.warning.main,
       pending: theme.palette.grey[500],
     };
-    return map[status.toLowerCase()] || theme.palette.primary.light;
+    return map[(status || '').toLowerCase()] || theme.palette.primary.light;
   };
 };
 
@@ -72,7 +70,12 @@ const useStatusColor = () => {
 const FilterDialog = ({ open, onClose, filters, setFilters, applyFilters }) => {
   const handleStatusChange = (event) => {
     const { value } = event.target;
-    setFilters(prev => ({ ...prev, status: value }));
+    // Support "All" option
+    if (value.includes('all')) {
+      setFilters(prev => ({ ...prev, status: ['active', 'completed', 'approved', 'paused', 'pending'] }));
+    } else {
+      setFilters(prev => ({ ...prev, status: value }));
+    }
   };
 
   const handleTypeChange = (event) => {
@@ -84,11 +87,11 @@ const FilterDialog = ({ open, onClose, filters, setFilters, applyFilters }) => {
   };
 
   const handleMinBudgetChange = (event) => {
-    setFilters(prev => ({ ...prev, minBudget: event.target.value }));
+    setFilters(prev => ({ ...prev, minBudget: Number(event.target.value) }));
   };
 
   const handleMaxBudgetChange = (event) => {
-    setFilters(prev => ({ ...prev, maxBudget: event.target.value }));
+    setFilters(prev => ({ ...prev, maxBudget: Number(event.target.value) }));
   };
 
   const handleStartDateChange = (date) => {
@@ -105,7 +108,7 @@ const FilterDialog = ({ open, onClose, filters, setFilters, applyFilters }) => {
   };
 
   const handleReset = () => {
-    setFilters(INITIAL_FILTERS);
+    setFilters({ ...INITIAL_FILTERS });
   };
 
   return (
@@ -127,7 +130,7 @@ const FilterDialog = ({ open, onClose, filters, setFilters, applyFilters }) => {
                 label="Start Date"
                 value={filters.startDate}
                 onChange={handleStartDateChange}
-                renderInput={(params) => <TextField {...params} fullWidth />}
+                slotProps={{ textField: { fullWidth: true } }}
               />
             </Grid>
             <Grid item xs={12} sm={6}>
@@ -135,7 +138,7 @@ const FilterDialog = ({ open, onClose, filters, setFilters, applyFilters }) => {
                 label="End Date"
                 value={filters.endDate}
                 onChange={handleEndDateChange}
-                renderInput={(params) => <TextField {...params} fullWidth />}
+                slotProps={{ textField: { fullWidth: true } }}
               />
             </Grid>
             
@@ -149,9 +152,9 @@ const FilterDialog = ({ open, onClose, filters, setFilters, applyFilters }) => {
                   label="Status"
                   renderValue={(selected) => selected.join(', ')}
                 >
-                  {['active', 'completed', 'approved', 'paused', 'pending'].map((status) => (
+                  {['all', 'active', 'completed', 'approved', 'paused', 'pending'].map((status) => (
                     <MenuItem key={status} value={status}>
-                      {status.charAt(0).toUpperCase() + status.slice(1)}
+                      {status === 'all' ? 'All' : status.charAt(0).toUpperCase() + status.slice(1)}
                     </MenuItem>
                   ))}
                 </Select>
@@ -182,6 +185,7 @@ const FilterDialog = ({ open, onClose, filters, setFilters, applyFilters }) => {
                 value={filters.minBudget}
                 onChange={handleMinBudgetChange}
                 fullWidth
+                inputProps={{ min: 0 }}
               />
             </Grid>
             <Grid item xs={12} sm={6}>
@@ -191,6 +195,7 @@ const FilterDialog = ({ open, onClose, filters, setFilters, applyFilters }) => {
                 value={filters.maxBudget}
                 onChange={handleMaxBudgetChange}
                 fullWidth
+                inputProps={{ min: 0 }}
               />
             </Grid>
             
@@ -260,11 +265,10 @@ const Dashboard = () => {
       
       let params = {};
       
-      // Only add filters to params if they exist
       if (filters) {
         params = {
-          startDate: filters.startDate.toISOString().split('T')[0],
-          endDate: filters.endDate.toISOString().split('T')[0],
+          startDate: filters.startDate?.toISOString?.().split('T')[0],
+          endDate: filters.endDate?.toISOString?.().split('T')[0],
           'status[]': filters.status,
           type: filters.type,
           minBudget: filters.minBudget,
@@ -302,9 +306,8 @@ const Dashboard = () => {
 
   const getActiveFilters = () => {
     if (!appliedFilters) return [];
-    
     return [
-      `Date: ${appliedFilters.startDate.toLocaleDateString()} - ${appliedFilters.endDate.toLocaleDateString()}`,
+      `Date: ${appliedFilters.startDate?.toLocaleDateString?.() || ''} - ${appliedFilters.endDate?.toLocaleDateString?.() || ''}`,
       `Status: ${appliedFilters.status.join(', ')}`,
       `Type: ${appliedFilters.type.toUpperCase()}`,
       `Budget: $${appliedFilters.minBudget} - $${appliedFilters.maxBudget}`
@@ -313,25 +316,13 @@ const Dashboard = () => {
 
   if (loading) return (
     <Box minHeight="100vh" display="flex" flexDirection="column" bgcolor="#f8fafd">
-      <Box sx={{ 
-        p: 3, 
-        display: 'flex', 
-        justifyContent: 'space-between', 
-        alignItems: 'center',
-        bgcolor: '#fff',
-        boxShadow: '0 4px 20px rgba(0,0,0,0.04)',
-        borderBottom: '1px solid rgba(0,0,0,0.05)'
-      }}>
-        <Skeleton variant="text" width={250} height={40} />
-        <Box display="flex" gap={2}>
-          <Skeleton variant="circular" width={40} height={40} />
-          <Skeleton variant="circular" width={40} height={40} />
-        </Box>
-      </Box>
-      
-      <Box sx={{ p: 3, maxWidth: 1400, margin: '0 auto', width: '100%' }}>
+      <TopFiltersBar
+        filters={appliedFilters || INITIAL_FILTERS}
+        onOpenFilter={handleOpenFilterDialog}
+        onRefresh={() => fetchData(appliedFilters)}
+      />
+      <Box sx={{ p: 3, maxWidth: 1600, margin: '0 auto', width: '100%' }}>
         <Skeleton variant="text" width={200} height={40} sx={{ mb: 3 }} />
-        
         <Grid container spacing={3}>
           {[1,2,3,4].map(item => (
             <Grid item xs={12} sm={6} md={3} key={item}>
@@ -339,64 +330,75 @@ const Dashboard = () => {
             </Grid>
           ))}
         </Grid>
-        
         <Grid container spacing={3} mt={0}>
           <Grid item xs={12} md={8}>
-            <Skeleton variant="rounded" width="100%" height={350} sx={{ mt: 3 }} />
+            <Skeleton variant="rounded" width="100%" height={420} sx={{ mt: 3 }} />
           </Grid>
           <Grid item xs={12} md={4}>
-            <Skeleton variant="rounded" width="%100" height={350} sx={{ mt: 3 }} />
+            <Skeleton variant="rounded" width="100%" height={420} sx={{ mt: 3 }} />
           </Grid>
         </Grid>
-        
         <Grid container spacing={3} mt={1}>
           <Grid item xs={12} md={8}>
-            <Skeleton variant="rounded" width="100%" height={300} sx={{ mt: 3 }} />
+            <Skeleton variant="rounded" width="100%" height={360} sx={{ mt: 3 }} />
           </Grid>
           <Grid item xs={12} md={4}>
-            <Skeleton variant="rounded" width="100%" height={300} sx={{ mt: 3 }} />
+            <Skeleton variant="rounded" width="100%" height={360} sx={{ mt: 3 }} />
           </Grid>
         </Grid>
-        
-        <Skeleton variant="rounded" width="100%" height={400} sx={{ mt: 3 }} />
+        <Skeleton variant="rounded" width="100%" height={480} sx={{ mt: 3 }} />
       </Box>
     </Box>
   );
 
   if (error) {
     return (
-      <Box minHeight="100vh" display="flex" alignItems="center" justifyContent="center" bgcolor="#f8fafd">
-        <Alert severity="error" sx={{ width: '100%', maxWidth: 500 }}>
-          <Typography variant="h6" fontWeight={700}>Data Loading Error</Typography>
-          <Typography>{error}</Typography>
-          <Box mt={2}>
-            <Button 
-              variant="contained" 
-              color="primary"
-              startIcon={<Refresh />}
-              onClick={() => fetchData(appliedFilters)}
-            >
-              Try Again
-            </Button>
-          </Box>
-        </Alert>
+      <Box minHeight="100vh" display="flex" flexDirection="column" bgcolor="#f8fafd">
+        <TopFiltersBar
+          filters={appliedFilters || INITIAL_FILTERS}
+          onOpenFilter={handleOpenFilterDialog}
+          onRefresh={() => fetchData(appliedFilters)}
+        />
+        <Box minHeight="60vh" display="flex" alignItems="center" justifyContent="center">
+          <Alert severity="error" sx={{ width: '100%', maxWidth: 500 }}>
+            <Typography variant="h6" fontWeight={700}>Data Loading Error</Typography>
+            <Typography>{error}</Typography>
+            <Box mt={2}>
+              <Button 
+                variant="contained" 
+                color="primary"
+                startIcon={<Refresh />}
+                onClick={() => fetchData(appliedFilters)}
+              >
+                Try Again
+              </Button>
+            </Box>
+          </Alert>
+        </Box>
       </Box>
     );
   }
 
   if (!dashboardData || !dashboardData.data) {
     return (
-      <Box minHeight="100vh" display="flex" alignItems="center" justifyContent="center" bgcolor="#f8fafd">
-        <Typography variant="h5" color="textSecondary">
-          No data available
-        </Typography>
+      <Box minHeight="100vh" display="flex" flexDirection="column" bgcolor="#f8fafd">
+        <TopFiltersBar
+          filters={appliedFilters || INITIAL_FILTERS}
+          onOpenFilter={handleOpenFilterDialog}
+          onRefresh={() => fetchData(appliedFilters)}
+        />
+        <Box minHeight="60vh" display="flex" alignItems="center" justifyContent="center">
+          <Typography variant="h5" color="textSecondary">
+            No data available
+          </Typography>
+        </Box>
       </Box>
     );
   }
 
   const { summary, campaigns, performanceByType, monthlyPerformance, statusDistribution } = dashboardData.data;
 
-  const statusData = statusDistribution.map(item => ({
+  const statusData = (statusDistribution || []).map(item => ({
     name: item.status.charAt(0).toUpperCase() + item.status.slice(1),
     value: item.count,
     color: getStatusColor(item.status),
@@ -406,6 +408,14 @@ const Dashboard = () => {
 
   return (
     <Box minHeight="100vh" display="flex" flexDirection="column" bgcolor="#f8fafd">
+      {/* Global Top Filters Bar */}
+      <TopFiltersBar
+        filters={appliedFilters || INITIAL_FILTERS}
+        onOpenFilter={handleOpenFilterDialog}
+        onRefresh={() => fetchData(appliedFilters)}
+        activeChips={activeFilters}
+      />
+
       {/* Filter Dialog */}
       <FilterDialog 
         open={filterDialogOpen} 
@@ -414,40 +424,9 @@ const Dashboard = () => {
         setFilters={setTempFilters}
         applyFilters={applyFilters}
       />
-      
-      {/* Active Filters */}
-      {appliedFilters && activeFilters.length > 0 && (
-        <Box sx={{ p: 2, bgcolor: '#e8f4fd', borderBottom: '1px solid #d1e7f5' }}>
-          <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap">
-            <Typography variant="subtitle2" fontWeight={600}>Active Filters:</Typography>
-            {activeFilters.map((filter, index) => (
-              <Chip 
-                key={index} 
-                label={filter} 
-                size="small"
-                sx={{ 
-                  bgcolor: alpha(theme.palette.primary.light, 0.2),
-                  color: theme.palette.primary.dark,
-                  fontWeight: 600,
-                  fontSize: '0.8rem',
-                  py: 0.5
-                }}
-              />
-            ))}
-            <Button 
-              size="small" 
-              onClick={handleOpenFilterDialog}
-              sx={{ ml: 'auto', fontWeight: 700 }}
-              startIcon={<FilterList fontSize="small" />}
-            >
-              Modify Filters
-            </Button>
-          </Stack>
-        </Box>
-      )}
-      
+
       {/* Main Content */}
-      <Box sx={{ p: 3, maxWidth: 1400, margin: '0 auto', width: '100%' }}>
+      <Box sx={{ p: 3, maxWidth: 1600, margin: '0 auto', width: '100%' }}>
         {/* Summary Grid */}
         <Fade in>
           <Grid container spacing={3}>
@@ -465,353 +444,275 @@ const Dashboard = () => {
             </Grid>
           </Grid>
         </Fade>
-          <br/>
-        {/* Premium Chart Section */}
-        <Slide in direction="up" timeout={620}>
-          <Grid container spacing={3} mt={0}>
-            <Grid item xs={12} md={8}>
-              <Paper elevation={0} sx={{
-                p: 3, 
-                borderRadius: 4, 
-                minHeight: 320,
-                display: "flex", 
-                flexDirection: "column", 
-                height: "100%",
-                overflow: "visible",
-                background: 'linear-gradient(to bottom right, #ffffff, #f9faff)',
-                border: '1px solid rgba(224, 230, 255, 0.7)',
-                boxShadow: '0 12px 40px -10px rgba(101, 116, 255, 0.08), 0 1.5px 10px -3px rgba(0,0,0,0.03)',
-              }}>
-                <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-                  <Typography variant="h6" fontWeight={700} color="text.primary">Monthly Performance</Typography>
-                  <Box display="flex" gap={1}>
-                    <Tooltip title="Filter">
-                      <IconButton 
-                        size="small" 
-                        sx={{ 
-                          bgcolor: '#f1f5fe', 
-                          borderRadius: 2,
-                          '&:hover': { bgcolor: '#e6edfe' }
-                        }}
-                        onClick={handleOpenFilterDialog}
-                      >
-                        <FilterList fontSize="small" />
-                      </IconButton>
-                    </Tooltip>
-                    <Tooltip title="Refresh data">
-                      <IconButton 
-                        size="small" 
-                        sx={{ 
-                          bgcolor: '#f1f5fe', 
-                          borderRadius: 2,
-                          '&:hover': { bgcolor: '#e6edfe' }
-                        }}
-                        onClick={() => fetchData(appliedFilters)}
-                      >
-                        <Refresh fontSize="small" />
-                      </IconButton>
-                    </Tooltip>
-                  </Box>
-                </Box>
-                <Box flex={1} minHeight={215} sx={{ mt: 2, pb: 1, width: '100%' }}>
-                  <ResponsiveContainer width="99%" height={260}>
-                    <ComposedChart
-                      data={monthlyPerformance}
-                      margin={{ top: 16, right: 20, left: 10, bottom: 30 }}
-                    >
-                      <defs>
-                        <linearGradient id="premBarA" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="0%" stopColor={theme.palette.primary.main} stopOpacity={.9} />
-                          <stop offset="75%" stopColor={theme.palette.primary.light} stopOpacity={0.18} />
-                        </linearGradient>
-                        <linearGradient id="premBarS" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="0%" stopColor="#39BF7D" stopOpacity={.94} />
-                          <stop offset="100%" stopColor="#C3EEC6" stopOpacity={.08} />
-                        </linearGradient>
-                        <linearGradient id="premBarC" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="0%" stopColor="#ffb62a" stopOpacity={.9} />
-                          <stop offset="100%" stopColor="#FFF5CA" stopOpacity={.06} />
-                        </linearGradient>
-                        <filter id="shadow-premium" x="-40%" y="-20%" width="180%" height="170%">
-                          <feDropShadow dx="0" dy="8" stdDeviation="10" floodColor="#003A7B" floodOpacity="0.07" />
-                        </filter>
-                      </defs>
-                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={alpha(theme.palette.divider, 0.4)} />
-                      <XAxis
-                        dataKey="month"
-                        tickFormatter={(m) => m.includes('-') ? `M${m.split('-')[1]}` : m}
-                        style={{ fontWeight: 600, fontSize: '0.85rem' }}
-                        dy={10}
-                      />
-                      <YAxis style={{ fontWeight: 600 }} />
-                      <ChartTooltip
-                        formatter={formatNumber}
-                        labelFormatter={label => `Month: ${label}`}
-                        contentStyle={{
-                          borderRadius: 12, border: 'none', minWidth: 58,
-                          boxShadow: theme.shadows[4], background: theme.palette.background.paper,
-                          fontWeight: 600
-                        }}
-                      />
-                      <Legend verticalAlign="top" height={36} />
-                      <Bar
-                        dataKey="totalSpent"
-                        name="Spent"
-                        fill="url(#premBarA)"
-                        barSize={28}
-                        radius={[6, 6, 0, 0]}
-                        style={{ filter: "url(#shadow-premium)" }}
-                      />
-                      <Bar
-                        dataKey="totalInstalls"
-                        name="Installs"
-                        fill="url(#premBarS)"
-                        barSize={28}
-                        radius={[6, 6, 0, 0]}
-                        style={{ filter: "url(#shadow-premium)" }}
-                      />
-                      <Area
-                        type="monotone"
-                        dataKey="totalClicks"
-                        name="Clicks"
-                        stroke="#FFA726"
-                        fill="url(#premBarC)"
-                        strokeWidth={3}
-                        dot={{ r: 5, fill: theme.palette.warning.main }}
-                        activeDot={{ r: 7 }}
-                      />
-                    </ComposedChart>
-                  </ResponsiveContainer>
-                </Box>
-              </Paper>
-            </Grid>
-            <Grid item xs={12} md={4}>
-              <Paper elevation={0} sx={{
-                p: 3, 
-                borderRadius: 4, 
-                minHeight: 320,
-                display: "flex", 
-                flexDirection: "column", 
-                height: "100%",
-                overflow: "visible",
-                background: 'linear-gradient(to bottom right, #ffffff, #f9faff)',
-                border: '1px solid rgba(224, 230, 255, 0.7)',
-                boxShadow: '0 12px 40px -10px rgba(101, 116, 255, 0.08), 0 1.5px 10px -3px rgba(0,0,0,0.03)',
-              }}>
-                <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-                  <Typography variant="h6" fontWeight={700} color="text.primary">Status Distribution</Typography>
-                  <Box display="flex" gap={1}>
-                    <Tooltip title="Filter">
-                      <IconButton 
-                        size="small" 
-                        sx={{ 
-                          bgcolor: '#f1f5fe', 
-                          borderRadius: 2,
-                          '&:hover': { bgcolor: '#e6edfe' }
-                        }}
-                        onClick={handleOpenFilterDialog}
-                      >
-                        <FilterList fontSize="small" />
-                      </IconButton>
-                    </Tooltip>
-                    <Tooltip title="Refresh data">
-                      <IconButton 
-                        size="small" 
-                        sx={{ 
-                          bgcolor: '#f1f5fe', 
-                          borderRadius: 2,
-                          '&:hover': { bgcolor: '#e6edfe' }
-                        }}
-                        onClick={() => fetchData(appliedFilters)}
-                      >
-                        <Refresh fontSize="small" />
-                      </IconButton>
-                    </Tooltip>
-                  </Box>
-                </Box>
-                <Box flex={1} minHeight={220} sx={{ mt: 1.5, width: '100%' }}>
-                  <ResponsiveContainer width="99%" height={230}>
-                    <PieChart>
-                      <defs>
-                        <filter id="pie-glow" x="0" y="0" width="200%" height="200%">
-                          <feDropShadow dx="0" dy="0" stdDeviation="7" floodColor="#4f57ef" floodOpacity="0.13" />
-                        </filter>
-                      </defs>
-                      <Pie
-                        data={statusData}
-                        cx="50%"
-                        cy="50%"
-                        innerRadius={38}
-                        outerRadius={70}
-                        labelLine={false}
-                        stroke="#fff"
-                        strokeWidth={3}
-                        fill="#8884d8"
-                        dataKey="value"
-                        isAnimationActive={true}
-                        animationDuration={1300}
-                        label={({ name, percent }) =>
-                          `${name}: ${(percent * 100).toFixed(0)}%`
-                        }
-                        style={{ filter: "url(#pie-glow)" }}
-                      >
-                        {statusData.map((entry, i) => (
-                          <Cell key={i} fill={entry.color} />
-                        ))}
-                      </Pie>
-                      <ChartTooltip
-                        formatter={v => [`${v} campaigns`]}
-                        contentStyle={{
-                          borderRadius: 10, border: 'none',
-                          fontWeight: 600, background: "#fafcff", boxShadow: theme.shadows[2]
-                        }}
-                      />
-                    </PieChart>
-                  </ResponsiveContainer>
-                </Box>
-              </Paper>
-            </Grid>
-          </Grid>
-        </Slide>
 
-        {/* Campaign Performance & Metrics */}
-        <Fade in timeout={800}>
-          <Grid container spacing={3} mt={3}>
-            <Grid item xs={12} md={8}>
-              <Box mb={1} mt={4}>
-                <Typography variant="h5" fontWeight={800} display="flex" alignItems="center" letterSpacing="-0.5px">
-                  <BarChartIcon fontSize="inherit" sx={{ mr: 1, verticalAlign: "middle" }} />
-                  Campaign Performance
-                </Typography>
-              </Box>
-              <Paper elevation={0} sx={{ 
-                p: 3, 
-                borderRadius: 4,
-                background: 'linear-gradient(to bottom right, #ffffff, #f9faff)',
-                border: '1px solid rgba(224, 230, 255, 0.7)',
-                boxShadow: '0 12px 40px -10px rgba(101, 116, 255, 0.08), 0 1.5px 10px -3px rgba(0,0,0,0.03)',
-              }}>
-                <Grid container spacing={2} mb={2}>
-                  {[
-                    { label: "Active", value: summary.activeCampaigns, trend: 1, icon: <TrendingUp /> },
-                    { label: "Completed", value: summary.completedCampaigns, trend: 0, icon: <TrendingUp /> },
-                    { label: "Paused", value: summary.pausedCampaigns, trend: -1, icon: <TrendingDown /> },
-                    { label: "Pending", value: summary.pendingCampaigns, trend: 0, icon: <TrendingUp /> },
-                  ].map((item, i) => (
-                    <Grid item xs={6} sm={3} key={item.label}>
-                      <StatusCard
-                        status={item.label}
-                        count={item.value}
-                        color={getStatusColor(item.label)}
-                        icon={item.icon}
-                      />
-                    </Grid>
-                  ))}
-                </Grid>
-                <Divider sx={{ my: 2 }} />
-                <Grid container spacing={2}>
-                  <Grid item xs={12} md={4}>
-                    <MetricCard
-                      title="Total Installs"
-                      value={formatNumber(summary.totalInstalls)}
-                      icon={<ArrowUpward fontSize="small" />}
-                      trend="+12%"
-                      color={theme.palette.success.main}
-                    />
-                  </Grid>
-                  <Grid item xs={12} md={4}>
-                    <MetricCard
-                      title="Average CTR"
-                      value={formatPercent(summary.averageCTR)}
-                      icon={<ArrowUpward fontSize="small" />}
-                      trend="+2.3%"
-                      color={theme.palette.success.main}
-                    />
-                  </Grid>
-                  <Grid item xs={12} md={4}>
-                    <MetricCard
-                      title="Average CPC"
-                      value={formatCurrency(summary.averageCPC)}
-                      icon={<ArrowDownward fontSize="small" />}
-                      trend="-0.5%"
-                      color={theme.palette.error.main}
-                    />
-                  </Grid>
-                </Grid>
-              </Paper>
-            </Grid>
-            <Grid item xs={12} md={4}>
-              <Box mb={1} mt={4}>
-                <Typography variant="h5" fontWeight={800} display="flex" alignItems="center" letterSpacing="-0.5px">
-                  <PieChartIcon fontSize="inherit" sx={{ mr: 1, verticalAlign: "middle" }} />
-                  Performance by Type
-                </Typography>
-              </Box>
-              <Paper elevation={0} sx={{ 
-                p: 3, 
-                borderRadius: 4, 
-                minHeight: 320,
-                background: 'linear-gradient(to bottom right, #ffffff, #f9faff)',
-                border: '1px solid rgba(224, 230, 255, 0.7)',
-                boxShadow: '0 12px 40px -10px rgba(101, 116, 255, 0.08), 0 1.5px 10px -3px rgba(0,0,0,0.03)',
-              }}>
-                <Box height={215} width="100%">
-                  <ResponsiveContainer width="99%" height={180}>
-                    <ComposedChart
-                      data={performanceByType}
-                      margin={{ top: 10, right: 18, left: 2, bottom: 15 }}
-                    >
-                      <defs>
-                        <linearGradient id="pbtBudget" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor={theme.palette.primary.main} stopOpacity={0.7} />
-                          <stop offset="95%" stopColor={theme.palette.primary.main} stopOpacity={0.16} />
-                        </linearGradient>
-                        <linearGradient id="pbtSpent" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor={theme.palette.success.light} stopOpacity={0.75} />
-                          <stop offset="95%" stopColor={theme.palette.success.light} stopOpacity={0.1} />
-                        </linearGradient>
-                      </defs>
-                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={alpha(theme.palette.divider, 0.4)} />
-                      <XAxis dataKey="type" style={{ fontWeight: 700 }} />
-                      <YAxis style={{ fontWeight: 700 }} />
-                      <ChartTooltip
-                        formatter={formatNumber}
-                        contentStyle={{
-                          borderRadius: 8,
-                          border: 'none',
-                          boxShadow: theme.shadows[4]
-                        }}
-                      />
-                      <Legend />
-                      <Area
-                        type="monotone"
-                        dataKey="totalBudget"
-                        name="Total Budget"
-                        stroke={theme.palette.primary.main}
-                        fill="url(#pbtBudget)"
-                        strokeWidth={3}
-                      />
-                      <Area
-                        type="monotone"
-                        dataKey="totalSpent"
-                        name="Total Spent"
-                        stroke={theme.palette.success.main}
-                        fill="url(#pbtSpent)"
-                        strokeWidth={3}
-                      />
-                    </ComposedChart>
-                  </ResponsiveContainer>
-                </Box>
-              </Paper>
-            </Grid>
-          </Grid>
-        </Fade>
+        {/* Charts Section with CSS Grid 1fr 1fr */}
+        <Box
+          sx={{
+            mt: 3,
+            display: 'grid',
+            gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' },
+            gap: 24
+          }}
+        >
+          {/* Monthly Performance - Wide and Not Cropped */}
+          <Paper elevation={0} sx={chartCardSX}>
+            <Header
+              title="Monthly Performance"
+              onFilter={handleOpenFilterDialog}
+              onRefresh={() => fetchData(appliedFilters)}
+            />
+            <Box sx={chartContainerSX}>
+              <ResponsiveContainer width="100%" height={360}>
+                <ComposedChart
+                  data={monthlyPerformance}
+                  margin={{ top: 16, right: 28, left: 16, bottom: 24 }}
+                >
+                  <defs>
+                    <linearGradient id="premBarA" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor={theme.palette.primary.main} stopOpacity={.9} />
+                      <stop offset="75%" stopColor={theme.palette.primary.light} stopOpacity={0.18} />
+                    </linearGradient>
+                    <linearGradient id="premBarS" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#39BF7D" stopOpacity={.94} />
+                      <stop offset="100%" stopColor="#C3EEC6" stopOpacity={.08} />
+                    </linearGradient>
+                    <linearGradient id="premBarC" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#ffb62a" stopOpacity={.9} />
+                      <stop offset="100%" stopColor="#FFF5CA" stopOpacity={.06} />
+                    </linearGradient>
+                    <filter id="shadow-premium" x="-40%" y="-20%" width="180%" height="170%">
+                      <feDropShadow dx="0" dy="8" stdDeviation="10" floodColor="#003A7B" floodOpacity="0.07" />
+                    </filter>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={alpha(theme.palette.divider, 0.4)} />
+                  <XAxis
+                    dataKey="month"
+                    tickFormatter={(m) => (m && m.includes?.('-') ? `M${m.split('-')[1]}` : m)}
+                    style={{ fontWeight: 600, fontSize: '0.9rem' }}
+                    dy={8}
+                    interval="preserveStartEnd"
+                  />
+                  <YAxis style={{ fontWeight: 600 }} />
+                  <ChartTooltip
+                    formatter={formatNumber}
+                    labelFormatter={label => `Month: ${label}`}
+                    contentStyle={{
+                      borderRadius: 12, border: 'none', minWidth: 58,
+                      boxShadow: theme.shadows[4], background: theme.palette.background.paper,
+                      fontWeight: 600
+                    }}
+                  />
+                  <Legend verticalAlign="top" height={28} />
+                  <Bar
+                    dataKey="totalSpent"
+                    name="Spent"
+                    fill="url(#premBarA)"
+                    barSize={34}
+                    radius={[6, 6, 0, 0]}
+                    style={{ filter: "url(#shadow-premium)" }}
+                  />
+                  <Bar
+                    dataKey="totalInstalls"
+                    name="Installs"
+                    fill="url(#premBarS)"
+                    barSize={34}
+                    radius={[6, 6, 0, 0]}
+                    style={{ filter: "url(#shadow-premium)" }}
+                  />
+                  <Area
+                    type="monotone"
+                    dataKey="totalClicks"
+                    name="Clicks"
+                    stroke="#FFA726"
+                    fill="url(#premBarC)"
+                    strokeWidth={3}
+                    dot={{ r: 4, fill: theme.palette.warning.main }}
+                    activeDot={{ r: 6 }}
+                  />
+                </ComposedChart>
+              </ResponsiveContainer>
+            </Box>
+          </Paper>
 
-        {/* Table: Campaigns */}
-        <Grow in timeout={1000}>
+          {/* Status Distribution - Wide and Not Cropped */}
+          <Paper elevation={0} sx={chartCardSX}>
+            <Header
+              title="Status Distribution"
+              onFilter={handleOpenFilterDialog}
+              onRefresh={() => fetchData(appliedFilters)}
+            />
+            <Box sx={chartContainerSX}>
+              <ResponsiveContainer width="100%" height={360}>
+                <PieChart>
+                  <defs>
+                    <filter id="pie-glow" x="0" y="0" width="200%" height="200%">
+                      <feDropShadow dx="0" dy="0" stdDeviation="7" floodColor="#4f57ef" floodOpacity="0.13" />
+                    </filter>
+                  </defs>
+                  <Pie
+                    data={statusData}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={64}
+                    outerRadius={110}
+                    labelLine={false}
+                    stroke="#fff"
+                    strokeWidth={3}
+                    dataKey="value"
+                    isAnimationActive
+                    animationDuration={1100}
+                    label={({ name, percent }) =>
+                      `${name}: ${(percent * 100).toFixed(0)}%`
+                    }
+                    style={{ filter: "url(#pie-glow)" }}
+                  >
+                    {statusData.map((entry, i) => (
+                      <Cell key={i} fill={entry.color} />
+                    ))}
+                  </Pie>
+                  <ChartTooltip
+                    formatter={v => [`${v} campaigns`]}
+                    contentStyle={{
+                      borderRadius: 10, border: 'none',
+                      fontWeight: 600, background: "#fafcff", boxShadow: theme.shadows[2]
+                    }}
+                  />
+                </PieChart>
+              </ResponsiveContainer>
+            </Box>
+          </Paper>
+        </Box>
+
+        {/* Lower charts with 1fr 1fr */}
+        <Box
+          sx={{
+            mt: 3,
+            display: 'grid',
+            gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' },
+            gap: 24
+          }}
+        >
+          {/* Campaign Performance & Metrics */}
+          <Paper elevation={0} sx={{ ...chartCardSX, minHeight: 420 }}>
+            <Box mb={1}>
+              <Typography variant="h6" fontWeight={800} display="flex" alignItems="center" letterSpacing="-0.5px">
+                <BarChartIcon fontSize="inherit" sx={{ mr: 1, verticalAlign: "middle" }} />
+                Campaign Performance
+              </Typography>
+            </Box>
+            <Grid container spacing={2} mb={2}>
+              {[
+                { label: "Active", value: summary.activeCampaigns },
+                { label: "Completed", value: summary.completedCampaigns },
+                { label: "Paused", value: summary.pausedCampaigns },
+                { label: "Pending", value: summary.pendingCampaigns },
+              ].map((item) => (
+                <Grid item xs={6} sm={3} key={item.label}>
+                  <StatusCard
+                    status={item.label}
+                    count={item.value}
+                    color={getStatusColor(item.label)}
+                    icon={item.value >= 0 ? <ArrowUpward /> : <ArrowDownward />}
+                  />
+                </Grid>
+              ))}
+            </Grid>
+            <Divider sx={{ my: 2 }} />
+            <Grid container spacing={2}>
+              <Grid item xs={12} md={4}>
+                <MetricCard
+                  title="Total Installs"
+                  value={formatNumber(summary.totalInstalls)}
+                  icon={<ArrowUpward fontSize="small" />}
+                  trend="+12%"
+                  color={theme.palette.success.main}
+                />
+              </Grid>
+              <Grid item xs={12} md={4}>
+                <MetricCard
+                  title="Average CTR"
+                  value={formatPercent(summary.averageCTR)}
+                  icon={<ArrowUpward fontSize="small" />}
+                  trend="+2.3%"
+                  color={theme.palette.success.main}
+                />
+              </Grid>
+              <Grid item xs={12} md={4}>
+                <MetricCard
+                  title="Average CPC"
+                  value={formatCurrency(summary.averageCPC)}
+                  icon={<ArrowDownward fontSize="small" />}
+                  trend="-0.5%"
+                  color={theme.palette.error.main}
+                />
+              </Grid>
+            </Grid>
+          </Paper>
+
+          {/* Performance by Type */}
+          <Paper elevation={0} sx={chartCardSX}>
+            <Box mb={1}>
+              <Typography variant="h6" fontWeight={800} display="flex" alignItems="center" letterSpacing="-0.5px">
+                <PieChartIcon fontSize="inherit" sx={{ mr: 1, verticalAlign: "middle" }} />
+                Performance by Type
+              </Typography>
+            </Box>
+            <Box sx={chartContainerSX}>
+              <ResponsiveContainer width="100%" height={320}>
+                <ComposedChart
+                  data={performanceByType}
+                  margin={{ top: 10, right: 24, left: 16, bottom: 20 }}
+                >
+                  <defs>
+                    <linearGradient id="pbtBudget" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor={theme.palette.primary.main} stopOpacity={0.7} />
+                      <stop offset="95%" stopColor={theme.palette.primary.main} stopOpacity={0.16} />
+                    </linearGradient>
+                    <linearGradient id="pbtSpent" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor={theme.palette.success.light} stopOpacity={0.75} />
+                      <stop offset="95%" stopColor={theme.palette.success.light} stopOpacity={0.1} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={alpha(theme.palette.divider, 0.4)} />
+                  <XAxis dataKey="type" style={{ fontWeight: 700 }} />
+                  <YAxis style={{ fontWeight: 700 }} />
+                  <ChartTooltip
+                    formatter={formatNumber}
+                    contentStyle={{
+                      borderRadius: 8,
+                      border: 'none',
+                      boxShadow: theme.shadows[4],
+                      background: theme.palette.background.paper
+                    }}
+                  />
+                  <Legend />
+                  <Area
+                    type="monotone"
+                    dataKey="totalBudget"
+                    name="Total Budget"
+                    stroke={theme.palette.primary.main}
+                    fill="url(#pbtBudget)"
+                    strokeWidth={3}
+                  />
+                  <Area
+                    type="monotone"
+                    dataKey="totalSpent"
+                    name="Total Spent"
+                    stroke={theme.palette.success.main}
+                    fill="url(#pbtSpent)"
+                    strokeWidth={3}
+                  />
+                </ComposedChart>
+              </ResponsiveContainer>
+            </Box>
+          </Paper>
+        </Box>
+
+        {/* Table: Campaigns (Full Width) */}
+        <Grow in timeout={800}>
           <Box mt={4}>
-            <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
-              <Typography variant="h5" fontWeight={900} display="flex" alignItems="center">
+            <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+              <Typography variant="h6" fontWeight={900} display="flex" alignItems="center">
                 Campaign Details
               </Typography>
               <Box display="flex" gap={1}>
@@ -827,13 +728,7 @@ const Dashboard = () => {
                 </Tooltip>
               </Box>
             </Box>
-            <Paper elevation={0} sx={{
-              p: 3, 
-              borderRadius: 4,
-              background: 'linear-gradient(to bottom right, #ffffff, #f9faff)',
-              border: '1px solid rgba(224, 230, 255, 0.7)',
-              boxShadow: '0 12px 40px -10px rgba(101, 116, 255, 0.08), 0 1.5px 10px -3px rgba(0,0,0,0.03)',
-            }}>
+            <Paper elevation={0} sx={tableCardSX}>
               <TableContainer>
                 <Table size="small">
                   <TableHead>
@@ -848,7 +743,7 @@ const Dashboard = () => {
                     </TableRow>
                   </TableHead>
                   <TableBody>
-                    {campaigns.map(campaign => (
+                    {(campaigns || []).map(campaign => (
                       <TableRow key={campaign._id} hover sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
                         <TableCell>
                           <Box display="flex" alignItems="center">
@@ -856,12 +751,12 @@ const Dashboard = () => {
                               bgcolor: getStatusColor(campaign.status),
                               width: 38, height: 38, fontWeight: 700, mr: 2, fontSize: 20
                             }}>
-                              {campaign.name.charAt(0).toUpperCase()}
+                              {campaign.name?.charAt(0)?.toUpperCase?.()}
                             </Avatar>
                             <Box>
                               <Typography fontWeight={800} fontSize={16}>{campaign.name}</Typography>
                               <Typography variant="caption" color="text.secondary">
-                                {campaign.type.toUpperCase()}
+                                {(campaign.type || '').toUpperCase()}
                               </Typography>
                             </Box>
                           </Box>
@@ -886,11 +781,11 @@ const Dashboard = () => {
                             </Typography>
                             <LinearProgress
                               variant="determinate"
-                              value={campaign.budgetUtilization * 100}
+                              value={(campaign.budgetUtilization ?? 0) * 100}
                               sx={{
-                                width: 60,
+                                width: 100,
                                 mx: 0.5,
-                                height: 7,
+                                height: 8,
                                 borderRadius: 4,
                                 background: theme.palette.grey[100],
                                 "& .MuiLinearProgress-bar": {
@@ -900,7 +795,7 @@ const Dashboard = () => {
                             />
                           </Box>
                         </TableCell>
-                        <TableCell align="right">{campaign.installsCount}</TableCell>
+                        <TableCell align="right">{formatNumber(campaign.installsCount)}</TableCell>
                         <TableCell align="right">{formatPercent(campaign.ctr)}</TableCell>
                       </TableRow>
                     ))}
@@ -915,6 +810,123 @@ const Dashboard = () => {
   );
 };
 
+// ------- Top Filters Bar (All Filters) -------
+const TopFiltersBar = ({ filters, onOpenFilter, onRefresh, activeChips = [] }) => {
+  const theme = useTheme();
+  return (
+    <Box sx={{
+      p: 2,
+      bgcolor: '#ffffff',
+      borderBottom: '1px solid rgba(0,0,0,0.06)',
+      position: 'sticky',
+      top: 0,
+      zIndex: 10
+    }}>
+      <Box sx={{
+        maxWidth: 1600,
+        mx: 'auto',
+        display: 'flex',
+        alignItems: 'center',
+        gap: 1,
+        flexWrap: 'wrap'
+      }}>
+        <Typography variant="h6" fontWeight={800} sx={{ mr: 2 }}>
+          Dashboard
+        </Typography>
+        {activeChips.map((chip, i) => (
+          <Chip
+            key={i}
+            label={chip}
+            size="small"
+            sx={{
+              bgcolor: alpha(theme.palette.primary.light, 0.18),
+              color: theme.palette.primary.dark,
+              fontWeight: 600
+            }}
+          />
+        ))}
+        <Box sx={{ ml: 'auto', display: 'flex', gap: 1 }}>
+          <Button
+            variant="outlined"
+            color="primary"
+            startIcon={<FilterList />}
+            onClick={onOpenFilter}
+          >
+            All Filters
+          </Button>
+          <Button
+            variant="contained"
+            color="primary"
+            startIcon={<Refresh />}
+            onClick={onRefresh}
+          >
+            Refresh
+          </Button>
+        </Box>
+      </Box>
+    </Box>
+  );
+};
+
+// ------- Reusable Header for cards -------
+const Header = ({ title, onFilter, onRefresh }) => (
+  <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+    <Typography variant="h6" fontWeight={700} color="text.primary">
+      {title}
+    </Typography>
+    <Box display="flex" gap={1}>
+      <Tooltip title="Filter">
+        <IconButton 
+          size="small" 
+          sx={{ bgcolor: '#f1f5fe', borderRadius: 2, '&:hover': { bgcolor: '#e6edfe' } }}
+          onClick={onFilter}
+        >
+          <FilterList fontSize="small" />
+        </IconButton>
+      </Tooltip>
+      <Tooltip title="Refresh data">
+        <IconButton 
+          size="small" 
+          sx={{ bgcolor: '#f1f5fe', borderRadius: 2, '&:hover': { bgcolor: '#e6edfe' } }}
+          onClick={onRefresh}
+        >
+          <Refresh fontSize="small" />
+        </IconButton>
+      </Tooltip>
+    </Box>
+  </Box>
+);
+
+// ------- Shared SX for flawless chart sizing -------
+const chartCardSX = {
+  p: 3,
+  borderRadius: 4,
+  minHeight: 420,
+  display: "flex",
+  flexDirection: "column",
+  height: "100%",
+  overflow: "hidden", // prevent layout overflow and cropping issues
+  background: 'linear-gradient(to bottom right, #ffffff, #f9faff)',
+  border: '1px solid rgba(224, 230, 255, 0.7)',
+  boxShadow: '0 12px 40px -10px rgba(101, 116, 255, 0.08), 0 1.5px 10px -3px rgba(0,0,0,0.03)',
+};
+
+const chartContainerSX = {
+  flex: 1,
+  width: '100%',
+  minHeight: 300,
+  mt: 1,
+  pb: 1,
+  overflow: 'hidden'
+};
+
+const tableCardSX = {
+  p: 3, 
+  borderRadius: 4,
+  background: 'linear-gradient(to bottom right, #ffffff, #f9faff)',
+  border: '1px solid rgba(224, 230, 255, 0.7)',
+  boxShadow: '0 12px 40px -10px rgba(101, 116, 255, 0.08), 0 1.5px 10px -3px rgba(0,0,0,0.03)',
+};
 
 // ------- SUMMARY CARD -----------
 const SummaryCard = ({ title, value, icon, color, trend }) => (

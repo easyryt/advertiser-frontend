@@ -21,7 +21,6 @@ import {
 import Sidebar from "./Sidebar";
 import TopBar from "./TopBar";
 
-
 export const BG_GRADIENT = "linear-gradient(135deg, #f8fbff 0%, #f0f7ff 100%)";
 export const PRIMARY_COLOR = "#1976d2";
 export const SECONDARY_COLOR = "#5e35b1";
@@ -88,8 +87,8 @@ export default function DashboardLayout() {
   const navItems = [
     { text: "Dashboard", icon: "Dashboard", path: "/dashboard" },
     { text: "Campaigns", icon: "BallotIcon", path: "/dashboard/campaigns" },
-    { text: "Settings", icon: "Settings", path: "/dashboard/settings" },
     { text: "Profile", icon: "People", path: "/profile-page" },
+    { text: "Settings", icon: "Settings", path: "/dashboard/settings" },
   ];
 
   return (
@@ -188,7 +187,7 @@ export default function DashboardLayout() {
               "& > *": {
                 maxWidth: "100%",
                 overflowX: "hidden",
-              }
+              },
             }}
           >
             <Outlet />
@@ -233,8 +232,7 @@ export default function DashboardLayout() {
       >
         <Box
           sx={{ py: 1.5, px: 2, borderBottom: "1px solid rgba(0, 0, 0, 0.05)" }}
-        >
-        </Box>
+        ></Box>
         <MenuItem
           sx={{ py: 1.6, mt: 0.5 }}
           onClick={() => {
