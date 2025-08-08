@@ -29,7 +29,7 @@ import {
   ChevronRight,
   SupportAgent,
 } from "@mui/icons-material";
-import BallotIcon from '@mui/icons-material/Ballot';
+import BallotIcon from "@mui/icons-material/Ballot";
 
 const PRIMARY_COLOR = "#1976d2";
 const SECONDARY_COLOR = "#4dabf5";
@@ -50,27 +50,6 @@ const pulse = keyframes`
     boxShadow: 0 0 0 0 rgba(25, 118, 210, 0);
   }
 `;
-
-const DrawerHeader = styled("div")(({ theme }) => ({
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "space-between",
-  padding: theme.spacing(0, 3),
-  height: 80,
-  background: "linear-gradient(195deg, #f8fbff 0%, #f0f7ff 100%)",
-  boxShadow: "0 2px 8px rgba(140, 180, 250, 0.15)",
-  position: "relative",
-  overflow: "hidden",
-  "&::before": {
-    content: '""',
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    height: 4,
-    background: `linear-gradient(90deg, ${PRIMARY_COLOR} 0%, ${SECONDARY_COLOR} 100%)`,
-  },
-}));
 
 const ListItemStyled = styled(ListItem, {
   shouldForwardProp: (prop) => prop !== "selected",
@@ -149,7 +128,7 @@ const NotificationBadge = styled(Badge)(({ theme }) => ({
 
 const iconComponents = {
   Dashboard: Dashboard,
-  BallotIcon:BallotIcon,
+  BallotIcon: BallotIcon,
   People: People,
   BarChart: BarChart,
   Settings: Settings,
@@ -185,66 +164,9 @@ export default function Sidebar({
       onClose={() => isMobile && toggleDrawer()}
       ModalProps={{ keepMounted: true }}
     >
-      <DrawerHeader>
-        {!collapsed && (
-          <Box sx={{ display: "flex", alignItems: "center" }}>
-            <Box
-              sx={{
-                background: `linear-gradient(135deg, ${PRIMARY_COLOR} 0%, ${SECONDARY_COLOR} 100%)`,
-                width: 46,
-                height: 46,
-                borderRadius: 12,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                mr: 1.5,
-                transition: "all 0.3s ease",
-                transform: animateLogo ? "rotate(180deg)" : "rotate(0)",
-                boxShadow: "0 4px 12px rgba(25, 118, 210, 0.3)",
-              }}
-            >
-              <Dashboard sx={{ color: "#fff", fontSize: 26 }} />
-            </Box>
-            <Typography
-              variant="h6"
-              fontWeight={800}
-              color={PRIMARY_COLOR}
-              sx={{
-                userSelect: "none",
-                letterSpacing: 0.5,
-                background: `linear-gradient(135deg, ${PRIMARY_COLOR} 0%, ${SECONDARY_COLOR} 100%)`,
-                WebkitBackgroundClip: "text",
-                WebkitTextFillColor: "transparent",
-              }}
-            >
-              AdminPro
-            </Typography>
-          </Box>
-        )}
-        <IconButton
-          color="primary"
-          onClick={toggleDrawer}
-          size="medium"
-          sx={{
-            background: "rgba(25, 118, 210, 0.1)",
-            "&:hover": {
-              background: "rgba(25, 118, 210, 0.2)",
-              transform: "scale(1.1)",
-            },
-            transition: "all 0.3s ease",
-          }}
-        >
-          {collapsed ? (
-            <ChevronRight sx={{ color: PRIMARY_COLOR }} />
-          ) : (
-            <ChevronLeft sx={{ color: PRIMARY_COLOR }} />
-          )}
-        </IconButton>
-      </DrawerHeader>
-      <br />
-      <br />
-      <Divider sx={{ borderColor: "rgba(0, 0, 0, 0.05)", my: 0.5 }} />
-
+      <br/>
+      <br/>
+      <br/>
       <List sx={{ pt: 1, px: 0.5 }}>
         {navItems.map(({ text, icon, path, badge }) => {
           const IconComponent = iconComponents[icon];
