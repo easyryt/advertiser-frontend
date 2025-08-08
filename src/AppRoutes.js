@@ -43,7 +43,7 @@ const AppRoutes = () => {
         >
           <Route path="dashboard" element={<Dashboard />} />
           <Route path="dashboard/plan-list" element={<PlanList />} />
-          <Route path="dashboard/campaigns/:advertiserId" element={<CampaignsPage />} />
+          <Route path="dashboard/campaigns" element={<CampaignsPage />} />
           <Route path="dashboard/campaigns-details/:campaignId" element={<CampaignDetails />} />
           <Route path="dashboard/users" element={<UsersPage />} />
           <Route path="dashboard/products" element={<ProductsPage />} />
