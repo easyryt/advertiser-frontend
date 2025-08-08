@@ -234,12 +234,6 @@ export default function DashboardLayout() {
         <Box
           sx={{ py: 1.5, px: 2, borderBottom: "1px solid rgba(0, 0, 0, 0.05)" }}
         >
-          <Typography variant="subtitle1" fontWeight={600} noWrap>
-            {user?.name || "Admin User"}
-          </Typography>
-          <Typography variant="body2" color="text.secondary" noWrap>
-            {user?.email || "admin@example.com"}
-          </Typography>
         </Box>
         <MenuItem
           sx={{ py: 1.6, mt: 0.5 }}
