@@ -186,7 +186,7 @@ const CampaignDetails = () => {
         formData.append("appLogo", newLogoFile);
       }
 
-      const response = await axios.patch(
+      const response = await axios.put(
         `https://advertiserappnew.onrender.com/adv/campaign/update/${campaignId}`,
         formData,
         {
