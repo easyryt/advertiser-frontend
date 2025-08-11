@@ -198,13 +198,13 @@ const CampaignDetails = () => {
       );
 
       if (response.data.status) {
-        setCampaign({ 
-          ...campaign, 
+        setCampaign({
+          ...campaign,
           name: newName,
           appLogo: {
             ...campaign.appLogo,
-            url: response.data.data.appLogo?.url || campaign.appLogo?.url
-          }
+            url: response.data.data.appLogo?.url || campaign.appLogo?.url,
+          },
         });
         setSnackbarMessage("Campaign updated successfully!");
         setSnackbarSeverity("success");
@@ -213,7 +213,9 @@ const CampaignDetails = () => {
         throw new Error(response.data.message || "Failed to update campaign");
       }
     } catch (err) {
-      setSnackbarMessage(err.response?.data?.message || "Error updating campaign");
+      setSnackbarMessage(
+        err.response?.data?.message || "Error updating campaign"
+      );
       setSnackbarSeverity("error");
     } finally {
       setUpdateLoading(false);
@@ -325,11 +327,6 @@ const CampaignDetails = () => {
 
   return (
     <Box
-      sx={{
-        background: "linear-gradient(135deg, #f5f7fa 0%, #e4e7ff 100%)",
-        minHeight: "100vh",
-        py: 4,
-      }}
     >
       <Container maxWidth="lg" sx={{ pt: isMobile ? 2 : 4, pb: 3 }}>
         {/* Header with Back Button */}
@@ -609,6 +606,7 @@ const CampaignDetails = () => {
                       <Box
                         sx={{
                           display: "flex",
+                          gap: "5px",
                           justifyContent: "space-between",
                           color: "rgba(255,255,255,0.8)",
                         }}
@@ -690,6 +688,7 @@ const CampaignDetails = () => {
                       <Box
                         sx={{
                           display: "flex",
+                          gap: "5px",
                           justifyContent: "space-between",
                           color: "rgba(255,255,255,0.8)",
                         }}
@@ -1157,7 +1156,7 @@ const CampaignDetails = () => {
           <DialogContentText sx={{ mb: 2, color: "#64748b" }}>
             Update your campaign details. Changes will be reflected immediately.
           </DialogContentText>
-          
+
           {/* Campaign Name Field */}
           <TextField
             autoFocus
@@ -1176,7 +1175,7 @@ const CampaignDetails = () => {
               },
             }}
           />
-          
+
           {/* Logo Upload Section */}
           <Typography variant="body1" sx={{ fontWeight: 600, mb: 1 }}>
             App Logo
@@ -1203,7 +1202,7 @@ const CampaignDetails = () => {
                 }}
               />
             )}
-            
+
             <Box
               sx={{
                 display: "flex",
@@ -1239,7 +1238,7 @@ const CampaignDetails = () => {
                   ref={fileInputRef}
                 />
               </Button>
-              
+
               {/* Remove Button */}
               {logoPreview && (
                 <Button
@@ -1264,7 +1263,7 @@ const CampaignDetails = () => {
                 </Button>
               )}
             </Box>
-            
+
             <Typography
               variant="caption"
               color="textSecondary"
