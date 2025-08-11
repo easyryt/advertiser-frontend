@@ -330,13 +330,38 @@ const CampaignsPage = () => {
       headerName: "STATUS",
       minWidth: 130,
       renderCell: (params) => {
-        const isActive = params.row.status === "active";
+        const status = params.row.status.toLowerCase();
+        let bgcolor, color;
+        
+        // Set colors based on status
+        switch(status) {
+          case 'pending':
+            bgcolor = '#fff3e0'; // light orange
+            color = '#ff9800';   // dark orange
+            break;
+          case 'approved':
+            bgcolor = '#e8f5e9'; // light green
+            color = '#2e7d32';   // dark green
+            break;
+          case 'paused':
+            bgcolor = '#f5f5f5'; // light grey
+            color = '#616161';   // dark grey
+            break;
+          case 'completed':
+            bgcolor = '#e3f2fd'; // light blue
+            color = '#1976d2';   // dark blue
+            break;
+          default:
+            bgcolor = '#f5f5f5';
+            color = '#9e9e9e';
+        }
+
         return (
           <Chip
-            label={params.row.status.toUpperCase()}
+            label={status.toUpperCase()}
             sx={{
-              bgcolor: isActive ? "#e8f5e9" : "#ffebee",
-              color: isActive ? "#2e7d32" : "#d32f2f",
+              bgcolor,
+              color,
               fontWeight: 700,
               px: 1,
               py: 0.5,
