@@ -749,7 +749,9 @@ const Dashboard = () => {
                       <TableRow key={campaign._id} hover sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
                         <TableCell>
                           <Box display="flex" alignItems="center">
-                            <Avatar sx={{
+                            <Avatar 
+                              src={campaign?.appLogo?.url}
+                            sx={{
                               bgcolor: getStatusColor(campaign.status),
                               width: 38, height: 38, fontWeight: 700, mr: 2, fontSize: 20
                             }}>
