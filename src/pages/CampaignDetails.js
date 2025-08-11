@@ -24,7 +24,9 @@ import {
   DialogActions,
   TextField,
   Snackbar,
-  Alert
+  Alert,
+  Avatar,
+  Divider,
 } from "@mui/material";
 import {
   Campaign,
@@ -37,10 +39,16 @@ import {
   PendingActions,
   Error as ErrorIcon,
   Edit,
+  ArrowBack,
+  BarChart,
+  Person,
+  Stars,
+  TrendingUp,
 } from "@mui/icons-material";
 import { motion } from "framer-motion";
 import { useParams, useNavigate } from "react-router-dom";
 import { useTheme } from "@mui/material/styles";
+import { format } from "date-fns";
 
 const CampaignDetails = () => {
   const [campaign, setCampaign] = useState(null);
@@ -127,7 +135,7 @@ const CampaignDetails = () => {
         { name: newName },
         { withCredentials: true }
       );
-      
+
       if (response.data.status) {
         setCampaign({ ...campaign, name: newName });
         setSnackbarMessage("Campaign name updated successfully!");
@@ -206,100 +214,162 @@ const CampaignDetails = () => {
   return (
     <Box sx={{ bgcolor: "background.default", minHeight: "100vh" }}>
       <Container maxWidth="lg" sx={{ pt: isMobile ? 2 : 6, pb: 3 }}>
-        {/* Header */}
+        {/* Header with Back Button */}
         <motion.div
-          initial={{ opacity: 0, y: 24 }}
+          initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.55 }}
+          transition={{ duration: 0.5 }}
         >
-          <Box
-            sx={{
-              display: "flex",
-              flexDirection: isMobile ? "column" : "row",
-              alignItems: isMobile ? "flex-start" : "center",
-              justifyContent: "space-between",
-              gap: 2,
-              mb: isMobile ? 2 : 4,
-            }}
-          >
-            <Typography
-              variant={isMobile ? "h5" : "h4"}
-              component="h1"
-              sx={{
-                fontWeight: 900,
-                flex: 1,
-                letterSpacing: "0.02em",
-                color: "text.primary",
-              }}
-            >
-              Campaign Details
-            </Typography>
+          <Box sx={{ display: "flex", alignItems: "center", mb: 4 }}>
+            <Box sx={{ flexGrow: 1 }}>
+              <Typography
+                variant={isMobile ? "h5" : "h4"}
+                component="h1"
+                sx={{
+                  fontWeight: 900,
+                  letterSpacing: "0.02em",
+                  color: "text.primary",
+                }}
+              >
+                Campaign Details
+              </Typography>
+              <Typography variant="body1" color="text.secondary">
+                Manage and track your campaign performance
+              </Typography>
+            </Box>
             <Chip
               icon={getStatusIcon(campaign.status)}
-              label={campaign.status.charAt(0).toUpperCase() + campaign.status.slice(1)}
+              label={
+                campaign.status.charAt(0).toUpperCase() +
+                campaign.status.slice(1)
+              }
               color={getStatusColor(campaign.status)}
               variant="filled"
-              sx={{ px: 2, py: 1, fontSize: "1rem", fontWeight: 700, borderRadius: 2 }}
+              sx={{
+                px: 2,
+                py: 1,
+                fontSize: "1rem",
+                fontWeight: 700,
+                borderRadius: 2,
+                boxShadow: theme.shadows[1],
+              }}
             />
           </Box>
         </motion.div>
+
         {/* Main content: 2 Columns layout */}
         <Grid
           container
           spacing={isMobile ? 2 : 4}
           alignItems="stretch"
           sx={{
-            flexDirection: { xs: "column-reverse", md: "row" }
+            flexDirection: { xs: "column-reverse", md: "row" },
           }}
         >
           {/* Left Column */}
           <Grid item xs={12} md={8}>
-            {/* Campaign Info */}
+            {/* Campaign Info Card */}
             <motion.div
-              initial={{ opacity: 0, x: -24 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.5, delay: 0.05 }}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.1 }}
             >
               <Card
-                elevation={4}
+                elevation={0}
                 sx={{
                   mb: isMobile ? 2 : 4,
-                  borderRadius: 3,
+                  borderRadius: 4,
                   bgcolor: "background.paper",
-                  position: "relative"
+                  border: `1px solid ${theme.palette.divider}`,
+                  position: "relative",
+                  overflow: "visible",
+                  "&:before": {
+                    content: '""',
+                    position: "absolute",
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    height: 4,
+                    borderTopLeftRadius: 4,
+                    borderTopRightRadius: 4,
+                    background: theme.palette.primary.main,
+                  },
                 }}
               >
-                <CardContent>
+                <CardContent sx={{ pt: 3 }}>
                   <Grid container spacing={2} alignItems="center">
                     <Grid item>
-                      <CardMedia
-                        component="img"
-                        image={campaign.appLogo.url}
+                      <Avatar
+                        src={campaign.appLogo.url}
                         alt="App Logo"
                         sx={{
-                          width: isMobile ? 60 : 90,
-                          height: isMobile ? 60 : 90,
-                          objectFit: "cover",
+                          width: isMobile ? 64 : 80,
+                          height: isMobile ? 64 : 80,
                           borderRadius: 2,
+                          boxShadow: theme.shadows[4],
                         }}
                       />
                     </Grid>
                     <Grid item xs>
-                      <Typography variant={isMobile ? "h6" : "h5"} sx={{ fontWeight: 700 }}>
-                        {campaign.name}
-                      </Typography>
-                      <Box sx={{ display: "flex", alignItems: "center", mt: 1.2, flexWrap: "wrap" }}>
-                        <LinkIcon sx={{ mr: 0.8, color: "primary.main", fontSize: 18 }} />
+                      <Box
+                        sx={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 1,
+                          mb: 0.5,
+                        }}
+                      >
+                        <Typography
+                          variant={isMobile ? "h6" : "h5"}
+                          sx={{ fontWeight: 800 }}
+                        >
+                          {campaign.name}
+                        </Typography>
+                        <Button
+                          variant="outlined"
+                          size="small"
+                          startIcon={<Edit fontSize="small" />}
+                          onClick={handleEditOpen}
+                          sx={{
+                            ml: 1,
+                            textTransform: "none",
+                            fontWeight: 500,
+                            borderRadius: 2,
+                            borderWidth: 1,
+                            "&:hover": {
+                              borderWidth: 1,
+                            },
+                          }}
+                        >
+                          Edit
+                        </Button>
+                      </Box>
+
+                      <Box
+                        sx={{
+                          display: "flex",
+                          alignItems: "center",
+                          mt: 1.2,
+                          flexWrap: "wrap",
+                        }}
+                      >
+                        <LinkIcon
+                          sx={{ mr: 0.8, color: "primary.main", fontSize: 18 }}
+                        />
                         <Tooltip
                           arrow
-                          title={<span style={{ wordBreak: "break-all" }}>{campaign.appLink}</span>}
+                          title={
+                            <span style={{ wordBreak: "break-all" }}>
+                              {campaign.packageName}
+                            </span>
+                          }
                           TransitionComponent={Fade}
                           TransitionProps={{ timeout: 400 }}
                         >
                           <Typography
                             variant="body2"
                             component="a"
-                            href={campaign.appLink}
+                            href={campaign.packageName}
                             target="_blank"
                             rel="noopener"
                             sx={{
@@ -308,280 +378,600 @@ const CampaignDetails = () => {
                               textDecoration: "none",
                               fontWeight: 600,
                               transition: "color 0.2s",
-                              "&:hover": { textDecoration: "underline", color: "secondary.main" },
+                              "&:hover": {
+                                textDecoration: "underline",
+                                color: "secondary.main",
+                              },
                             }}
                           >
-                            {campaign.appLink}
+                            {campaign.packageName}
                           </Typography>
                         </Tooltip>
+                      </Box>
+
+                      <Box
+                        sx={{
+                          display: "flex",
+                          alignItems: "center",
+                          mt: 2,
+                          gap: 2,
+                        }}
+                      >
+                        <Box sx={{ display: "flex", alignItems: "center" }}>
+                          <Person
+                            sx={{
+                              fontSize: 20,
+                              color: "text.secondary",
+                              mr: 1,
+                            }}
+                          />
+                          <Typography variant="body2" color="text.secondary">
+                            <Box
+                              component="span"
+                              sx={{ fontWeight: 600, color: "text.primary" }}
+                            >
+                              {campaign.installsCount}
+                            </Box>{" "}
+                            Installs
+                          </Typography>
+                        </Box>
+
+                        <Box sx={{ display: "flex", alignItems: "center" }}>
+                          <Stars
+                            sx={{
+                              fontSize: 20,
+                              color: "text.secondary",
+                              mr: 1,
+                            }}
+                          />
+                          <Typography variant="body2" color="text.secondary">
+                            <Box
+                              component="span"
+                              sx={{ fontWeight: 600, color: "text.primary" }}
+                            >
+                              {campaign.reviewCount}
+                            </Box>{" "}
+                            Reviews
+                          </Typography>
+                        </Box>
+
+                        <Box sx={{ display: "flex", alignItems: "center" }}>
+                          <TrendingUp
+                            sx={{
+                              fontSize: 20,
+                              color: "text.secondary",
+                              mr: 1,
+                            }}
+                          />
+                          <Typography variant="body2" color="text.secondary">
+                            CPI:{" "}
+                            <Box
+                              component="span"
+                              sx={{ fontWeight: 600, color: "text.primary" }}
+                            >
+                              ${campaign.costPerInstall}
+                            </Box>
+                          </Typography>
+                        </Box>
                       </Box>
                     </Grid>
                   </Grid>
                 </CardContent>
               </Card>
             </motion.div>
-            {/* Budget Card */}
-            <motion.div
-              initial={{ opacity: 0, x: -24 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.5, delay: 0.13 }}
+
+            {/* Stats Cards */}
+            <Grid
+              container
+              spacing={isMobile ? 2 : 3}
+              sx={{ mb: isMobile ? 2 : 4 }}
             >
-              <Card elevation={3} sx={{ mb: isMobile ? 2 : 4, borderRadius: 3 }}>
+              <Grid item xs={12} sm={6}>
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: 0.15 }}
+                >
+                  <Card
+                    elevation={0}
+                    sx={{
+                      borderRadius: 4,
+                      bgcolor: theme.palette.primary.light,
+                      background: `linear-gradient(135deg, ${theme.palette.primary.light} 0%, ${theme.palette.primary.lighter} 100%)`,
+                      border: `1px solid ${theme.palette.divider}`,
+                      height: "100%",
+                    }}
+                  >
+                    <CardContent>
+                      <Box
+                        sx={{ display: "flex", alignItems: "center", mb: 1 }}
+                      >
+                        <MonetizationOn sx={{ mr: 1, color: "primary.dark" }} />
+                        <Typography
+                          variant="subtitle1"
+                          sx={{ fontWeight: 700, color: "primary.dark" }}
+                        >
+                          Budget
+                        </Typography>
+                      </Box>
+                      <Typography variant="h5" sx={{ fontWeight: 800, mb: 1 }}>
+                        ${campaign.budgetTotal.toLocaleString()}
+                      </Typography>
+                      <LinearProgress
+                        variant="determinate"
+                        value={budgetPercentage}
+                        sx={{
+                          height: 10,
+                          borderRadius: 5,
+                          bgcolor: theme.palette.primary[100],
+                          mb: 1,
+                          "& .MuiLinearProgress-bar": {
+                            borderRadius: 5,
+                          },
+                        }}
+                      />
+                      <Box
+                        sx={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                        }}
+                      >
+                        <Typography variant="body2" color="text.secondary">
+                          Spent:{" "}
+                          <Box
+                            component="span"
+                            sx={{ fontWeight: 600, color: "text.primary" }}
+                          >
+                            ${campaign.budgetSpent.toLocaleString()}
+                          </Box>
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary">
+                          Remaining:{" "}
+                          <Box
+                            component="span"
+                            sx={{ fontWeight: 600, color: "text.primary" }}
+                          >
+                            $
+                            {(
+                              campaign.budgetTotal - campaign.budgetSpent
+                            ).toLocaleString()}
+                          </Box>
+                        </Typography>
+                      </Box>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              </Grid>
+
+              <Grid item xs={12} sm={6}>
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: 0.2 }}
+                >
+                  <Card
+                    elevation={0}
+                    sx={{
+                      borderRadius: 4,
+                      bgcolor: theme.palette.secondary.light,
+                      background: `linear-gradient(135deg, ${theme.palette.secondary.light} 0%, ${theme.palette.secondary.lighter} 100%)`,
+                      border: `1px solid ${theme.palette.divider}`,
+                      height: "100%",
+                    }}
+                  >
+                    <CardContent>
+                      <Box
+                        sx={{ display: "flex", alignItems: "center", mb: 1 }}
+                      >
+                        <BarChart sx={{ mr: 1, color: "secondary.dark" }} />
+                        <Typography
+                          variant="subtitle1"
+                          sx={{ fontWeight: 700, color: "secondary.dark" }}
+                        >
+                          Performance
+                        </Typography>
+                      </Box>
+                      <Typography variant="h5" sx={{ fontWeight: 800, mb: 1 }}>
+                        {campaign.installsCount}/{campaign.target} Installs
+                      </Typography>
+                      <LinearProgress
+                        variant="determinate"
+                        value={installsPercentage}
+                        color="secondary"
+                        sx={{
+                          height: 10,
+                          borderRadius: 5,
+                          bgcolor: theme.palette.secondary[100],
+                          mb: 1,
+                          "& .MuiLinearProgress-bar": {
+                            borderRadius: 5,
+                          },
+                        }}
+                      />
+                      <Box
+                        sx={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                        }}
+                      >
+                        <Typography variant="body2" color="text.secondary">
+                          Target:{" "}
+                          <Box
+                            component="span"
+                            sx={{ fontWeight: 600, color: "text.primary" }}
+                          >
+                            {campaign.target}
+                          </Box>
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary">
+                          Progress:{" "}
+                          <Box
+                            component="span"
+                            sx={{ fontWeight: 600, color: "text.primary" }}
+                          >
+                            {installsPercentage.toFixed(1)}%
+                          </Box>
+                        </Typography>
+                      </Box>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              </Grid>
+            </Grid>
+
+            {/* Campaign Details Card */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.25 }}
+            >
+              <Card
+                elevation={0}
+                sx={{
+                  borderRadius: 4,
+                  bgcolor: "background.paper",
+                  border: `1px solid ${theme.palette.divider}`,
+                  mb: isMobile ? 2 : 4,
+                }}
+              >
+                <CardContent>
+                  <Typography variant="h6" sx={{ fontWeight: 700, mb: 2 }}>
+                    Campaign Information
+                  </Typography>
+
+                  <Grid container spacing={2}>
+                    <Grid item xs={12} sm={6}>
+                      <Box sx={{ display: "flex", mb: 2 }}>
+                        <Box sx={{ minWidth: 120 }}>
+                          <Typography variant="body2" color="text.secondary">
+                            Type
+                          </Typography>
+                        </Box>
+                        <Chip
+                          label={campaign.type.toUpperCase()}
+                          size="small"
+                          sx={{
+                            fontWeight: 600,
+                            backgroundColor: theme.palette.info.light,
+                            color: theme.palette.info.dark,
+                          }}
+                        />
+                      </Box>
+                    </Grid>
+
+                    <Grid item xs={12} sm={6}>
+                      <Box sx={{ display: "flex", mb: 2 }}>
+                        <Box sx={{ minWidth: 120 }}>
+                          <Typography variant="body2" color="text.secondary">
+                            Created
+                          </Typography>
+                        </Box>
+                        <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                          {format(new Date(), "MMM d, yyyy")}
+                        </Typography>
+                      </Box>
+
+                      <Box sx={{ display: "flex", mb: 2 }}>
+                        <Box sx={{ minWidth: 120 }}>
+                          <Typography variant="body2" color="text.secondary">
+                            Last Updated
+                          </Typography>
+                        </Box>
+                        <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                          {format(new Date(), "MMM d, yyyy")}
+                        </Typography>
+                      </Box>
+                    </Grid>
+                  </Grid>
+
+                  <Divider sx={{ my: 2 }} />
+
+                  <Box>
+                    <Typography
+                      variant="subtitle1"
+                      sx={{ fontWeight: 600, mb: 1 }}
+                    >
+                      Campaign Metrics
+                    </Typography>
+                    <Grid container spacing={2}>
+                      <Grid item xs={6} sm={3}>
+                        <Box sx={{ textAlign: "center" }}>
+                          <Typography
+                            variant="h4"
+                            sx={{
+                              fontWeight: 800,
+                              color: theme.palette.primary.main,
+                            }}
+                          >
+                            {campaign.installsCount}
+                          </Typography>
+                          <Typography variant="body2" color="text.secondary">
+                            Installs
+                          </Typography>
+                        </Box>
+                      </Grid>
+                      <Grid item xs={6} sm={3}>
+                        <Box sx={{ textAlign: "center" }}>
+                          <Typography
+                            variant="h4"
+                            sx={{
+                              fontWeight: 800,
+                              color: theme.palette.secondary.main,
+                            }}
+                          >
+                            {campaign.reviewCount}
+                          </Typography>
+                          <Typography variant="body2" color="text.secondary">
+                            Reviews
+                          </Typography>
+                        </Box>
+                      </Grid>
+                      <Grid item xs={6} sm={3}>
+                        <Box sx={{ textAlign: "center" }}>
+                          <Typography
+                            variant="h4"
+                            sx={{
+                              fontWeight: 800,
+                              color: theme.palette.warning.main,
+                            }}
+                          >
+                            ${campaign.costPerInstall}
+                          </Typography>
+                          <Typography variant="body2" color="text.secondary">
+                            CPI
+                          </Typography>
+                        </Box>
+                      </Grid>
+                      <Grid item xs={6} sm={3}>
+                        <Box sx={{ textAlign: "center" }}>
+                          <Typography
+                            variant="h4"
+                            sx={{
+                              fontWeight: 800,
+                              color: theme.palette.success.main,
+                            }}
+                          >
+                            {campaign.target}
+                          </Typography>
+                          <Typography variant="body2" color="text.secondary">
+                            Target
+                          </Typography>
+                        </Box>
+                      </Grid>
+                    </Grid>
+                  </Box>
+                </CardContent>
+              </Card>
+            </motion.div>
+          </Grid>
+
+          {/* Right Column */}
+          <Grid item xs={12} md={4}>
+            {/* Status Card */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.3 }}
+            >
+              <Card
+                elevation={0}
+                sx={{
+                  borderRadius: 4,
+                  bgcolor: "background.paper",
+                  border: `1px solid ${theme.palette.divider}`,
+                  mb: isMobile ? 2 : 4,
+                }}
+              >
                 <CardContent>
                   <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
-                    <MonetizationOn sx={{ mr: 1, color: "primary.main" }} />
+                    <Campaign sx={{ mr: 1, color: "primary.main" }} />
                     <Typography variant="h6" sx={{ fontWeight: 700 }}>
-                      Budget Overview
+                      Campaign Status
                     </Typography>
                   </Box>
-                  <Box sx={{ mb: 2 }}>
-                    <Box sx={{
-                      display: "flex", justifyContent: "space-between", mb: 1.2
-                    }}>
-                      <Typography variant="body2" color="text.secondary">
-                        Spent: <strong>${campaign.budgetSpent}</strong>
-                      </Typography>
-                      <Typography variant="body2" color="text.secondary">
-                        Total: <strong>${campaign.budgetTotal}</strong>
-                      </Typography>
+
+                  <Box
+                    sx={{
+                      p: 3,
+                      borderRadius: 3,
+                      backgroundColor:
+                        campaign.status === "active"
+                          ? theme.palette.success.light
+                          : campaign.status === "pending"
+                          ? theme.palette.warning.light
+                          : theme.palette.primary.light,
+                      textAlign: "center",
+                      mb: 2,
+                    }}
+                  >
+                    <Box
+                      sx={{
+                        display: "inline-flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        width: 80,
+                        height: 80,
+                        borderRadius: "50%",
+                        backgroundColor:
+                          campaign.status === "active"
+                            ? theme.palette.success.main
+                            : campaign.status === "pending"
+                            ? theme.palette.warning.main
+                            : theme.palette.primary.main,
+                        mb: 2,
+                      }}
+                    >
+                      {getStatusIcon(campaign.status)}
                     </Box>
+                    <Typography
+                      variant="h6"
+                      sx={{
+                        fontWeight: 800,
+                        color:
+                          campaign.status === "active"
+                            ? theme.palette.success.dark
+                            : campaign.status === "pending"
+                            ? theme.palette.warning.dark
+                            : theme.palette.primary.dark,
+                      }}
+                    >
+                      {campaign.status.charAt(0).toUpperCase() +
+                        campaign.status.slice(1)}
+                    </Typography>
+                    <Typography
+                      variant="body2"
+                      sx={{ mt: 1, color: "text.secondary" }}
+                    >
+                      {campaign.status === "active"
+                        ? "Campaign is currently active and running"
+                        : campaign.status === "pending"
+                        ? "Campaign is pending approval"
+                        : "Campaign has been completed"}
+                    </Typography>
+                  </Box>
+
+                  <Button
+                    variant="contained"
+                    fullWidth
+                    color="primary"
+                    startIcon={<Edit />}
+                    onClick={handleEditOpen}
+                    sx={{
+                      py: 1.5,
+                      borderRadius: 2,
+                      fontWeight: 700,
+                      fontSize: "1rem",
+                      textTransform: "none",
+                      boxShadow: "none",
+                      "&:hover": {
+                        boxShadow: theme.shadows[2],
+                      },
+                    }}
+                  >
+                    Edit Campaign
+                  </Button>
+                </CardContent>
+              </Card>
+            </motion.div>
+
+            {/* Performance Card */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.35 }}
+            >
+              <Card
+                elevation={0}
+                sx={{
+                  borderRadius: 4,
+                  bgcolor: "background.paper",
+                  border: `1px solid ${theme.palette.divider}`,
+                }}
+              >
+                <CardContent>
+                  <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
+                    <TrendingUp sx={{ mr: 1, color: "primary.main" }} />
+                    <Typography variant="h6" sx={{ fontWeight: 700 }}>
+                      Performance Overview
+                    </Typography>
+                  </Box>
+
+                  <Box sx={{ mb: 3 }}>
+                    <Typography
+                      variant="body2"
+                      color="text.secondary"
+                      sx={{ mb: 1 }}
+                    >
+                      Budget Utilization
+                    </Typography>
                     <LinearProgress
                       variant="determinate"
                       value={budgetPercentage}
                       sx={{
-                        height: 11,
+                        height: 12,
                         borderRadius: 6,
-                        bgcolor: theme.palette.grey[200],
+                        mb: 1,
                         "& .MuiLinearProgress-bar": {
                           borderRadius: 6,
                         },
                       }}
                     />
-                    <Typography variant="caption" color="text.secondary" sx={{ display: "block", mt: 0.8 }}>
-                      {budgetPercentage.toFixed(1)}% budget used
+                    <Typography
+                      variant="body2"
+                      sx={{ textAlign: "right", fontWeight: 500 }}
+                    >
+                      {budgetPercentage.toFixed(1)}%
                     </Typography>
                   </Box>
-                  <Grid container spacing={2}>
-                    <Grid item xs={6}>
-                      <Paper
-                        elevation={1}
-                        sx={{
-                          p: 2,
-                          borderRadius: 2,
-                          bgcolor: "primary.light",
-                          textAlign: "center",
-                        }}
-                      >
-                        <Typography variant="body2" color="text.secondary">
-                          Cost Per Install
-                        </Typography>
-                        <Typography variant="h6" sx={{ fontWeight: 700 }}>
-                          ${campaign.costPerInstall}
-                        </Typography>
-                      </Paper>
-                    </Grid>
-                    <Grid item xs={6}>
-                      <Paper
-                        elevation={1}
-                        sx={{
-                          p: 2,
-                          borderRadius: 2,
-                          bgcolor: "secondary.light",
-                          textAlign: "center",
-                        }}
-                      >
-                        <Typography variant="body2" color="text.secondary">
-                          Remaining Budget
-                        </Typography>
-                        <Typography variant="h6" sx={{ fontWeight: 700 }}>
-                          ${Math.max(campaign.budgetTotal - campaign.budgetSpent, 0)}
-                        </Typography>
-                      </Paper>
-                    </Grid>
-                  </Grid>
-                </CardContent>
-              </Card>
-            </motion.div>
-            {/* Installs Card */}
-            <motion.div
-              initial={{ opacity: 0, x: -24 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.5, delay: 0.2 }}
-            >
-              <Card elevation={3} sx={{ borderRadius: 3 }}>
-                <CardContent>
-                  <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
-                    <Download sx={{ mr: 1, color: "primary.main" }} />
-                    <Typography variant="h6" sx={{ fontWeight: 700 }}>
-                      Installs Overview
+
+                  <Box>
+                    <Typography
+                      variant="body2"
+                      color="text.secondary"
+                      sx={{ mb: 1 }}
+                    >
+                      Install Target
                     </Typography>
-                  </Box>
-                  <Box sx={{ mb: 2 }}>
-                    <Box sx={{
-                      display: "flex", justifyContent: "space-between", mb: 1.2
-                    }}>
-                      <Typography variant="body2" color="text.secondary">
-                        Installs: <strong>{campaign.installsCount}</strong>
-                      </Typography>
-                      <Typography variant="body2" color="text.secondary">
-                        Target: <strong>{campaign.target}</strong>
-                      </Typography>
-                    </Box>
                     <LinearProgress
                       variant="determinate"
                       value={installsPercentage}
-                      color="info"
+                      color="secondary"
                       sx={{
-                        height: 11,
+                        height: 12,
                         borderRadius: 6,
-                        bgcolor: theme.palette.grey[200],
-                        "& .MuiLinearProgress-bar": { borderRadius: 6 },
+                        mb: 1,
+                        "& .MuiLinearProgress-bar": {
+                          borderRadius: 6,
+                        },
                       }}
                     />
-                    <Typography variant="caption" color="text.secondary" sx={{ display: "block", mt: 0.8 }}>
-                      {installsPercentage.toFixed(1)}% of target reached
+                    <Typography
+                      variant="body2"
+                      sx={{ textAlign: "right", fontWeight: 500 }}
+                    >
+                      {installsPercentage.toFixed(1)}%
                     </Typography>
                   </Box>
-                  <Grid container spacing={2}>
-                    <Grid item xs={6}>
-                      <Paper
-                        elevation={1}
-                        sx={{
-                          p: 2,
-                          borderRadius: 2,
-                          bgcolor: "info.light",
-                          textAlign: "center",
-                        }}
-                      >
-                        <Typography variant="body2" color="text.secondary">
-                          Reviews
-                        </Typography>
-                        <Typography variant="h6" sx={{ fontWeight: 700 }}>
-                          {campaign.reviewCount}
-                        </Typography>
-                      </Paper>
-                    </Grid>
-                    <Grid item xs={6}>
-                      <Paper
-                        elevation={1}
-                        sx={{
-                          p: 2,
-                          borderRadius: 2,
-                          bgcolor: "success.light",
-                          textAlign: "center",
-                        }}
-                      >
-                        <Typography variant="body2" color="text.secondary">
-                          Campaign Type
-                        </Typography>
-                        <Typography variant="h6" sx={{ fontWeight: 700, textTransform: "uppercase" }}>
-                          {campaign.type}
-                        </Typography>
-                      </Paper>
-                    </Grid>
-                  </Grid>
-                </CardContent>
-              </Card>
-            </motion.div>
-          </Grid>
-          {/* Right Column */}
-          <Grid item xs={12} md={4}>
-            {/* Timeline */}
-            <motion.div
-              initial={{ opacity: 0, y: 24 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.25 }}
-            >
-              <Card elevation={3} sx={{ mb: isMobile ? 2 : 4, borderRadius: 3 }}>
-                <CardContent>
-                  <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
-                    <CalendarToday sx={{ mr: 1, color: "primary.main" }} />
-                    <Typography variant="h6" sx={{ fontWeight: 700 }}>
-                      Campaign Timeline
-                    </Typography>
-                  </Box>
-                  <Box sx={{ position: "relative", pl: 3 }}>
-                    <Box sx={{ position: "relative", mb: 2 }}>
-                      <Box
-                        sx={{
-                          position: "absolute",
-                          left: -24,
-                          top: 7,
-                          width: 14,
-                          height: 14,
-                          borderRadius: "50%",
-                          bgcolor: "primary.main",
-                          zIndex: 2,
-                        }}
-                      />
-                      <Typography
-                        variant="subtitle2"
-                        sx={{ fontWeight: 700, letterSpacing: "0.015em" }}
-                      >
-                        Created At
-                      </Typography>
-                      <Typography variant="body2" color="text.secondary">
-                        {new Date().toLocaleDateString()}
-                      </Typography>
-                    </Box>
-                    <Box sx={{ position: "relative" }}>
-                      <Box
-                        sx={{
-                          position: "absolute",
-                          left: -24,
-                          top: 7,
-                          width: 14,
-                          height: 14,
-                          borderRadius: "50%",
-                          bgcolor: "primary.main",
-                          zIndex: 2,
-                        }}
-                      />
-                      <Typography
-                        variant="subtitle2"
-                        sx={{ fontWeight: 700, letterSpacing: "0.015em" }}
-                      >
-                        Last Updated
-                      </Typography>
-                      <Typography variant="body2" color="text.secondary">
-                        {new Date().toLocaleDateString()}
-                      </Typography>
-                    </Box>
-                  </Box>
-                </CardContent>
-              </Card>
-            </motion.div>
-            {/* Actions */}
-            <motion.div
-              initial={{ opacity: 0, y: 24 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.33 }}
-            >
-              <Card elevation={3} sx={{ borderRadius: 3 }}>
-                <CardContent>
-                  <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
-                    <Campaign sx={{ mr: 1, color: "primary.main" }} />
-                    <Typography variant="h6" sx={{ fontWeight: 700 }}>
-                      Campaign Actions
-                    </Typography>
-                  </Box>
-                  {/* Edit */}
-                  <Button
-                    variant="outlined"
-                    fullWidth
-                    color="secondary"
-                    startIcon={<Edit />}
-                    onClick={handleEditOpen}
-                    sx={{ 
-                      mb: 2, 
-                      py: 1.5, 
-                      borderRadius: 2, 
-                      fontWeight: 600, 
-                      fontSize: "1rem" 
+
+                  <Box
+                    sx={{
+                      mt: 3,
+                      p: 2,
+                      backgroundColor: theme.palette.grey[100],
+                      borderRadius: 2,
                     }}
                   >
-                    Edit Campaign Name
-                  </Button>
+                    <Typography variant="body2" sx={{ fontWeight: 600, mb: 1 }}>
+                      Performance Insights
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      {installsPercentage >= 75
+                        ? "Great progress! Your campaign is performing well above average."
+                        : installsPercentage >= 50
+                        ? "Good progress. Consider optimizing your ad placements."
+                        : "Needs improvement. Review your targeting and creatives."}
+                    </Typography>
+                  </Box>
                 </CardContent>
               </Card>
             </motion.div>
@@ -590,16 +980,26 @@ const CampaignDetails = () => {
       </Container>
 
       {/* Edit Name Dialog */}
-      <Dialog open={editOpen} onClose={handleEditClose}>
-        <DialogTitle>
+      <Dialog
+        open={editOpen}
+        onClose={handleEditClose}
+        PaperProps={{ sx: { borderRadius: 4 } }}
+      >
+        <DialogTitle
+          sx={{
+            bgcolor: "background.paper",
+            borderBottom: `1px solid ${theme.palette.divider}`,
+          }}
+        >
           <Box sx={{ display: "flex", alignItems: "center" }}>
             <Edit sx={{ mr: 1, color: "primary.main" }} />
             Edit Campaign Name
           </Box>
         </DialogTitle>
-        <DialogContent>
+        <DialogContent sx={{ bgcolor: "background.paper", py: 3 }}>
           <DialogContentText sx={{ mb: 2 }}>
-            Update the name of your campaign. This will be visible in all campaign reports.
+            Update the name of your campaign. This will be visible in all
+            campaign reports.
           </DialogContentText>
           <TextField
             autoFocus
@@ -611,21 +1011,31 @@ const CampaignDetails = () => {
             value={newName}
             onChange={handleNameChange}
             disabled={updateLoading}
+            sx={{ mb: 2 }}
           />
         </DialogContent>
-        <DialogActions>
-          <Button 
-            onClick={handleEditClose} 
+        <DialogActions
+          sx={{
+            bgcolor: "background.paper",
+            borderTop: `1px solid ${theme.palette.divider}`,
+            px: 3,
+            py: 2,
+          }}
+        >
+          <Button
+            onClick={handleEditClose}
             color="inherit"
             disabled={updateLoading}
+            sx={{ fontWeight: 600, borderRadius: 2 }}
           >
             Cancel
           </Button>
-          <Button 
-            onClick={handleUpdateCampaign} 
+          <Button
+            onClick={handleUpdateCampaign}
             color="primary"
             variant="contained"
             disabled={updateLoading || !newName.trim()}
+            sx={{ fontWeight: 600, borderRadius: 2, boxShadow: "none", px: 3 }}
           >
             {updateLoading ? <CircularProgress size={24} /> : "Save Changes"}
           </Button>
@@ -639,10 +1049,15 @@ const CampaignDetails = () => {
         onClose={handleSnackbarClose}
         anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
       >
-        <Alert 
-          onClose={handleSnackbarClose} 
+        <Alert
+          onClose={handleSnackbarClose}
           severity={snackbarSeverity}
-          sx={{ width: "100%" }}
+          sx={{
+            width: "100%",
+            borderRadius: 2,
+            boxShadow: theme.shadows[4],
+            fontWeight: 500,
+          }}
         >
           {snackbarMessage}
         </Alert>
