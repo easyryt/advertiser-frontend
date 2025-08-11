@@ -1,5 +1,5 @@
 // src/CampaignDetails.jsx
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import {
   Box,
@@ -45,6 +45,8 @@ import {
   Assignment,
   EventNote,
   CalendarToday,
+  Delete,
+  CloudUpload,
 } from "@mui/icons-material";
 import { motion } from "framer-motion";
 import { useParams, useNavigate } from "react-router-dom";
@@ -55,10 +57,13 @@ const CampaignDetails = () => {
   const [error, setError] = useState(null);
   const [editOpen, setEditOpen] = useState(false);
   const [newName, setNewName] = useState("");
+  const [newLogoFile, setNewLogoFile] = useState(null);
+  const [logoPreview, setLogoPreview] = useState("");
   const [updateLoading, setUpdateLoading] = useState(false);
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState("");
   const [snackbarSeverity, setSnackbarSeverity] = useState("success");
+  const fileInputRef = useRef(null);
 
   const { campaignId } = useParams();
   const navigate = useNavigate();
@@ -76,6 +81,7 @@ const CampaignDetails = () => {
         if (response.data.status && response.data.data) {
           setCampaign(response.data.data);
           setNewName(response.data.data.name);
+          setLogoPreview(response.data.data.appLogo?.url || "");
         } else {
           setError("Campaign data not found");
         }
@@ -120,31 +126,94 @@ const CampaignDetails = () => {
 
   const handleEditClose = () => {
     setEditOpen(false);
+    setNewLogoFile(null);
+    setLogoPreview(campaign.appLogo?.url || "");
   };
 
   const handleNameChange = (event) => {
     setNewName(event.target.value);
   };
 
+  const handleFileChange = (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      // Validate file type
+      if (!file.type.match("image.*")) {
+        setSnackbarMessage("Please select an image file (JPEG, PNG, etc.)");
+        setSnackbarSeverity("error");
+        setSnackbarOpen(true);
+        return;
+      }
+
+      // Validate file size (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        setSnackbarMessage("File size too large (max 5MB)");
+        setSnackbarSeverity("error");
+        setSnackbarOpen(true);
+        return;
+      }
+
+      setNewLogoFile(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setLogoPreview(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleRemoveLogo = () => {
+    setNewLogoFile(null);
+    setLogoPreview("");
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
+
   const handleUpdateCampaign = async () => {
+    if (!newName.trim()) {
+      setSnackbarMessage("Campaign name cannot be empty");
+      setSnackbarSeverity("error");
+      setSnackbarOpen(true);
+      return;
+    }
+
     try {
       setUpdateLoading(true);
-      const response = await axios.put(
+      const formData = new FormData();
+      formData.append("name", newName);
+      if (newLogoFile) {
+        formData.append("appLogo", newLogoFile);
+      }
+
+      const response = await axios.patch(
         `https://advertiserappnew.onrender.com/adv/campaign/update/${campaignId}`,
-        { name: newName },
-        { withCredentials: true }
+        formData,
+        {
+          withCredentials: true,
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        }
       );
 
       if (response.data.status) {
-        setCampaign({ ...campaign, name: newName });
-        setSnackbarMessage("Campaign name updated successfully!");
+        setCampaign({ 
+          ...campaign, 
+          name: newName,
+          appLogo: {
+            ...campaign.appLogo,
+            url: response.data.data.appLogo?.url || campaign.appLogo?.url
+          }
+        });
+        setSnackbarMessage("Campaign updated successfully!");
         setSnackbarSeverity("success");
         setEditOpen(false);
       } else {
         throw new Error(response.data.message || "Failed to update campaign");
       }
     } catch (err) {
-      setSnackbarMessage(err.message || "Error updating campaign");
+      setSnackbarMessage(err.response?.data?.message || "Error updating campaign");
       setSnackbarSeverity("error");
     } finally {
       setUpdateLoading(false);
@@ -1060,7 +1129,7 @@ const CampaignDetails = () => {
         </Grid>
       </Container>
 
-      {/* Edit Name Dialog */}
+      {/* Edit Campaign Dialog */}
       <Dialog
         open={editOpen}
         onClose={handleEditClose}
@@ -1082,13 +1151,14 @@ const CampaignDetails = () => {
           }}
         >
           <Edit sx={{ mr: 1, color: "#5a67d8" }} />
-          Edit Campaign Name
+          Edit Campaign
         </DialogTitle>
         <DialogContent sx={{ bgcolor: "background.paper", py: 3 }}>
           <DialogContentText sx={{ mb: 2, color: "#64748b" }}>
-            Update the name of your campaign. This will be visible in all
-            campaign reports.
+            Update your campaign details. Changes will be reflected immediately.
           </DialogContentText>
+          
+          {/* Campaign Name Field */}
           <TextField
             autoFocus
             margin="dense"
@@ -1099,13 +1169,110 @@ const CampaignDetails = () => {
             value={newName}
             onChange={handleNameChange}
             disabled={updateLoading}
-            sx={{ mb: 2 }}
+            sx={{ mb: 3 }}
             InputProps={{
               sx: {
                 borderRadius: 3,
               },
             }}
           />
+          
+          {/* Logo Upload Section */}
+          <Typography variant="body1" sx={{ fontWeight: 600, mb: 1 }}>
+            App Logo
+          </Typography>
+          <Box
+            sx={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              mb: 3,
+            }}
+          >
+            {/* Logo Preview */}
+            {logoPreview && (
+              <Avatar
+                src={logoPreview}
+                alt="Logo Preview"
+                sx={{
+                  width: 120,
+                  height: 120,
+                  mb: 2,
+                  borderRadius: 3,
+                  boxShadow: "0 4px 10px rgba(0,0,0,0.1)",
+                }}
+              />
+            )}
+            
+            <Box
+              sx={{
+                display: "flex",
+                gap: 2,
+                flexDirection: isMobile ? "column" : "row",
+                width: "100%",
+              }}
+            >
+              {/* Upload Button */}
+              <Button
+                component="label"
+                variant="outlined"
+                startIcon={<CloudUpload />}
+                sx={{
+                  flex: 1,
+                  py: 1.5,
+                  borderRadius: 3,
+                  fontWeight: 600,
+                  textTransform: "none",
+                  border: "2px dashed #cbd5e1",
+                  backgroundColor: "#f8fafc",
+                  "&:hover": {
+                    backgroundColor: "#f1f5f9",
+                  },
+                }}
+              >
+                {logoPreview ? "Change Logo" : "Upload Logo"}
+                <input
+                  type="file"
+                  hidden
+                  accept="image/*"
+                  onChange={handleFileChange}
+                  ref={fileInputRef}
+                />
+              </Button>
+              
+              {/* Remove Button */}
+              {logoPreview && (
+                <Button
+                  variant="outlined"
+                  startIcon={<Delete />}
+                  onClick={handleRemoveLogo}
+                  sx={{
+                    flex: 1,
+                    py: 1.5,
+                    borderRadius: 3,
+                    fontWeight: 600,
+                    textTransform: "none",
+                    color: "#ef4444",
+                    borderColor: "#ef4444",
+                    "&:hover": {
+                      backgroundColor: "#fee2e2",
+                      borderColor: "#ef4444",
+                    },
+                  }}
+                >
+                  Remove
+                </Button>
+              )}
+            </Box>
+            
+            <Typography
+              variant="caption"
+              color="textSecondary"
+              sx={{ mt: 1, textAlign: "center" }}
+            >
+              Recommended: Square PNG/JPEG (max 5MB)
+            </Typography>
+          </Box>
         </DialogContent>
         <DialogActions
           sx={{
