@@ -810,7 +810,7 @@ const CampaignsPage = () => {
                             
                             <Stack direction="row" alignItems="flex-end" spacing={1} mb={3}>
                               <Typography variant="h3" fontWeight={800} color="primary">
-                                ${plan.planAmount}
+                                ₹{plan.planAmount}
                               </Typography>
                               <Typography variant="subtitle1" color="text.secondary" mb={0.5}>
                                 Budget
