@@ -47,9 +47,12 @@ import {
   CalendarToday,
   Delete,
   CloudUpload,
+  Pause,
+  PlayArrow,
 } from "@mui/icons-material";
 import { motion } from "framer-motion";
 import { useParams, useNavigate } from "react-router-dom";
+import AdsClickIcon from '@mui/icons-material/AdsClick';
 
 const CampaignDetails = () => {
   const [campaign, setCampaign] = useState(null);
@@ -94,25 +97,31 @@ const CampaignDetails = () => {
     fetchCampaignData();
   }, [campaignId]);
 
+  // Updated status color mapping
   const getStatusColor = (status) => {
     switch (status) {
       case "pending":
-        return "warning";
-      case "active":
-        return "success";
+        return "#f59e0b"; // Amber
+      case "approved":
+        return "#10b981"; // Emerald
+      case "paused":
+        return "#64748b"; // Slate
       case "completed":
-        return "primary";
+        return "#3b82f6"; // Blue
       default:
-        return "default";
+        return "#94a3b8"; // Default gray
     }
   };
 
+  // Updated status icon mapping
   const getStatusIcon = (status) => {
     switch (status) {
       case "pending":
         return <PendingActions />;
-      case "active":
+      case "approved":
         return <CheckCircle />;
+      case "paused":
+        return <Pause />;
       case "completed":
         return <CheckCircle />;
       default:
@@ -301,6 +310,7 @@ const CampaignDetails = () => {
               sx={{
                 fontWeight: 600,
                 px: 4,
+                py: 1,
                 background: "linear-gradient(90deg, #5a67d8 0%, #8b5cf6 100%)",
                 boxShadow: "0 4px 6px rgba(92, 107, 192, 0.3)",
                 borderRadius: 3,
@@ -326,8 +336,7 @@ const CampaignDetails = () => {
   };
 
   return (
-    <Box
-    >
+    <Box>
       <Container maxWidth="lg" sx={{ pt: isMobile ? 2 : 4, pb: 3 }}>
         {/* Header with Back Button */}
         <motion.div
@@ -366,8 +375,6 @@ const CampaignDetails = () => {
                 campaign.status.charAt(0).toUpperCase() +
                 campaign.status.slice(1)
               }
-              color={getStatusColor(campaign.status)}
-              variant="filled"
               sx={{
                 px: 2,
                 py: 1,
@@ -377,6 +384,12 @@ const CampaignDetails = () => {
                 boxShadow: "0 4px 6px rgba(0,0,0,0.05)",
                 height: "auto",
                 minHeight: 40,
+                // Apply custom color based on status
+                backgroundColor: getStatusColor(campaign.status) + "20", // 20% opacity
+                color: getStatusColor(campaign.status),
+                "& .MuiChip-icon": {
+                  color: getStatusColor(campaign.status),
+                },
               }}
             />
           </Box>
@@ -537,6 +550,21 @@ const CampaignDetails = () => {
                               fontWeight: 600,
                               backgroundColor: "#dbeafe",
                               color: "#1d4ed8",
+                              px: 1.5,
+                              py: 1,
+                            }}
+                          />
+                        </Grid>
+                        {/* Added Click Count Chip */}
+                        <Grid item>
+                          <Chip
+                            icon={<AdsClickIcon sx={{ fontSize: 18 }} />}
+                            label={`${campaign.clickCount || 0} Clicks`}
+                            size="small"
+                            sx={{
+                              fontWeight: 600,
+                              backgroundColor: "#dcfce7",
+                              color: "#166534",
                               px: 1.5,
                               py: 1,
                             }}
@@ -793,8 +821,8 @@ const CampaignDetails = () => {
                       <Insights sx={{ mr: 1, color: "#5a67d8" }} />
                       Campaign Metrics
                     </Typography>
-                    <Grid container spacing={2}>
-                      <Grid item xs={6} sm={3}>
+                    <Grid container spacing={2} justifyContent="space-around">
+                      <Grid item xs={6} sm={4} md={2}>
                         <Box
                           sx={{
                             textAlign: "center",
@@ -819,7 +847,7 @@ const CampaignDetails = () => {
                           </Typography>
                         </Box>
                       </Grid>
-                      <Grid item xs={6} sm={3}>
+                      <Grid item xs={6} sm={4} md={2}>
                         <Box
                           sx={{
                             textAlign: "center",
@@ -844,7 +872,33 @@ const CampaignDetails = () => {
                           </Typography>
                         </Box>
                       </Grid>
-                      <Grid item xs={6} sm={3}>
+                      {/* Added Click Count Box */}
+                      <Grid item xs={6} sm={4} md={2}>
+                        <Box
+                          sx={{
+                            textAlign: "center",
+                            bgcolor: "#dcfce7",
+                            p: 2,
+                            borderRadius: 3,
+                            border: "1px solid #bbf7d0",
+                          }}
+                        >
+                          <Typography
+                            variant="h4"
+                            sx={{
+                              fontWeight: 800,
+                              color: "#166534",
+                              mb: 1,
+                            }}
+                          >
+                            {campaign.clickCount || 0}
+                          </Typography>
+                          <Typography variant="body2" color="text.secondary">
+                            Clicks
+                          </Typography>
+                        </Box>
+                      </Grid>
+                      <Grid item xs={6} sm={4} md={2}>
                         <Box
                           sx={{
                             textAlign: "center",
@@ -869,7 +923,7 @@ const CampaignDetails = () => {
                           </Typography>
                         </Box>
                       </Grid>
-                      <Grid item xs={6} sm={3}>
+                      <Grid item xs={6} sm={4} md={2}>
                         <Box
                           sx={{
                             textAlign: "center",
@@ -930,12 +984,7 @@ const CampaignDetails = () => {
                     sx={{
                       p: 3,
                       borderRadius: 3,
-                      background:
-                        campaign.status === "active"
-                          ? "linear-gradient(135deg, #10b981 0%, #34d399 100%)"
-                          : campaign.status === "pending"
-                          ? "linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%)"
-                          : "linear-gradient(135deg, #8b5cf6 0%, #a78bfa 100%)",
+                      background: `linear-gradient(135deg, ${getStatusColor(campaign.status)} 0%, ${getStatusColor(campaign.status) + "99"} 100%)`,
                       textAlign: "center",
                       mb: 3,
                       boxShadow: "0 5px 15px rgba(0,0,0,0.08)",
@@ -977,6 +1026,10 @@ const CampaignDetails = () => {
                         ? "Campaign is pending approval"
                         : campaign.status === "completed"
                         ? "Campaign has been completed"
+                        : campaign.status === "paused"
+                        ? "Campaign is currently paused"
+                        : campaign.status === "approved"
+                        ? "Campaign has been approved"
                         : "Unknown campaign status"}
                     </Typography>
                   </Box>
