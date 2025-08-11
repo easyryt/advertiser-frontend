@@ -42,14 +42,16 @@ const INITIAL_FILTERS = {
 
 // ---------- UTILS ----------
 const formatCurrency = value =>
-  new Intl.NumberFormat("en-US", {
-    style: "currency", currency: "USD", maximumFractionDigits: 0
+  new Intl.NumberFormat("en-IN", {
+    style: "currency",
+    currency: "INR",
+    maximumFractionDigits: 0
   }).format(value ?? 0);
 
 const formatPercent = value =>
   value !== undefined ? `${(value * 100).toFixed(1)}%` : "0.0%";
 
-const formatNumber = value => new Intl.NumberFormat("en-US").format(value ?? 0);
+const formatNumber = value => new Intl.NumberFormat("en-IN").format(value ?? 0);
 
 // --------- STATUS COLOR ---------
 const useStatusColor = () => {
@@ -180,7 +182,7 @@ const FilterDialog = ({ open, onClose, filters, setFilters, applyFilters }) => {
             
             <Grid item xs={12} sm={6}>
               <TextField
-                label="Min Budget ($)"
+                label="Min Budget (₹)"
                 type="number"
                 value={filters.minBudget}
                 onChange={handleMinBudgetChange}
@@ -190,7 +192,7 @@ const FilterDialog = ({ open, onClose, filters, setFilters, applyFilters }) => {
             </Grid>
             <Grid item xs={12} sm={6}>
               <TextField
-                label="Max Budget ($)"
+                label="Max Budget (₹)"
                 type="number"
                 value={filters.maxBudget}
                 onChange={handleMaxBudgetChange}
@@ -310,7 +312,7 @@ const Dashboard = () => {
       `Date: ${appliedFilters.startDate?.toLocaleDateString?.() || ''} - ${appliedFilters.endDate?.toLocaleDateString?.() || ''}`,
       `Status: ${appliedFilters.status.join(', ')}`,
       `Type: ${appliedFilters.type.toUpperCase()}`,
-      `Budget: $${appliedFilters.minBudget} - $${appliedFilters.maxBudget}`
+      `Budget: ₹${appliedFilters.minBudget} - ₹${appliedFilters.maxBudget}`
     ];
   };
 
