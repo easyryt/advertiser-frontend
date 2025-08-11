@@ -7,24 +7,17 @@ import {
   CssBaseline,
   useTheme,
   useMediaQuery,
-  Toolbar,
   Menu,
-  Typography,
   MenuItem,
   Avatar,
   Divider,
 } from "@mui/material";
-import {
-  Settings as SettingsIcon,
-  Logout as LogoutIcon,
-} from "@mui/icons-material";
+import { Logout as LogoutIcon } from "@mui/icons-material";
 import Sidebar from "./Sidebar";
 import TopBar from "./TopBar";
 
 export const BG_GRADIENT = "linear-gradient(135deg, #f8fbff 0%, #f0f7ff 100%)";
 export const PRIMARY_COLOR = "#1976d2";
-export const SECONDARY_COLOR = "#5e35b1";
-export const ACCENT_COLOR = "#00bcd4";
 export const DRAWER_WIDTH = 240;
 export const COLLAPSED_WIDTH = 72;
 
@@ -88,7 +81,6 @@ export default function DashboardLayout() {
     { text: "Dashboard", icon: "Dashboard", path: "/dashboard" },
     { text: "Campaigns", icon: "BallotIcon", path: "/dashboard/campaigns" },
     { text: "Profile", icon: "People", path: "/profile-page" },
-    // { text: "Settings", icon: "Settings", path: "/dashboard/settings" },
   ];
 
   return (
@@ -98,7 +90,8 @@ export default function DashboardLayout() {
         minHeight: "100vh",
         width: "100vw",
         background: BG_GRADIENT,
-        overflow: "hidden",
+        overflowX: "hidden", // Prevent horizontal scroll
+        overflowY: "hidden", // Prevent root scroll
         maxWidth: "100vw",
         boxSizing: "border-box",
       }}
@@ -146,17 +139,17 @@ export default function DashboardLayout() {
           user={user}
         />
 
-        {/* Content Outlet with robust overflow prevention */}
+        {/* Scrollable Content Area */}
         <Box
           sx={{
             flex: 1,
             minHeight: 0,
             overflowX: "hidden",
-            overflowY: "auto",
+            overflowY: "auto", // Only vertical scroll here
             position: "relative",
             p: 3,
-            width: "100%",
             mt: 7,
+            width: "100%",
             maxWidth: "100%",
             boxSizing: "border-box",
             "& > *": {
@@ -170,14 +163,15 @@ export default function DashboardLayout() {
               paddingRight: "0 !important",
             },
             "& .MuiGrid-container": {
-              maxWidth: "100%",
+              marginLeft: "0 !important",
+              marginRight: "0 !important",
+              width: "100% !important",
             },
             "& .MuiPaper-root": {
               maxWidth: "100%",
             },
           }}
         >
-          {/* Outlet container with strict width constraints */}
           <Box
             sx={{
               width: "100%",
@@ -230,9 +224,6 @@ export default function DashboardLayout() {
         transformOrigin={{ horizontal: "right", vertical: "top" }}
         anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
       >
-        <Box
-          sx={{ py: 1.5, px: 2, borderBottom: "1px solid rgba(0, 0, 0, 0.05)" }}
-        ></Box>
         <MenuItem
           sx={{ py: 1.6, mt: 0.5 }}
           onClick={() => {
@@ -263,12 +254,7 @@ export default function DashboardLayout() {
             },
           }}
         >
-          <LogoutIcon
-            sx={{
-              mr: 1.5,
-              fontSize: 22,
-            }}
-          />
+          <LogoutIcon sx={{ mr: 1.5, fontSize: 22 }} />
           Logout
         </MenuItem>
       </Menu>
