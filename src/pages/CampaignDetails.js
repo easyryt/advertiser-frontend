@@ -5,11 +5,9 @@ import {
   Box,
   Typography,
   Container,
-  Paper,
   Grid,
   Card,
   CardContent,
-  CardMedia,
   CircularProgress,
   LinearProgress,
   Chip,
@@ -27,13 +25,11 @@ import {
   Alert,
   Avatar,
   Divider,
+  useTheme,
 } from "@mui/material";
 import {
   Campaign,
   MonetizationOn,
-  Download,
-  Reviews,
-  CalendarToday,
   Link as LinkIcon,
   CheckCircle,
   PendingActions,
@@ -44,11 +40,14 @@ import {
   Person,
   Stars,
   TrendingUp,
+  Public,
+  Insights,
+  Assignment,
+  EventNote,
+  CalendarToday,
 } from "@mui/icons-material";
 import { motion } from "framer-motion";
 import { useParams, useNavigate } from "react-router-dom";
-import { useTheme } from "@mui/material/styles";
-import { format } from "date-fns";
 
 const CampaignDetails = () => {
   const [campaign, setCampaign] = useState(null);
@@ -158,10 +157,11 @@ const CampaignDetails = () => {
   };
 
   const budgetPercentage = campaign
-    ? (campaign.budgetSpent / campaign.budgetTotal) * 100
+    ? Math.min(100, (campaign.budgetSpent / campaign.budgetTotal) * 100)
     : 0;
+
   const installsPercentage = campaign
-    ? (campaign.installsCount / campaign.target) * 100
+    ? Math.min(100, (campaign.installsCount / campaign.target) * 100)
     : 0;
 
   // Loading Screen
@@ -173,10 +173,16 @@ const CampaignDetails = () => {
           justifyContent: "center",
           alignItems: "center",
           minHeight: "100vh",
-          bgcolor: "background.default",
+          background: "linear-gradient(135deg, #f5f7fa 0%, #e4e7ff 100%)",
         }}
       >
-        <CircularProgress size={70} color="primary" />
+        <motion.div
+          initial={{ scale: 0.8, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ duration: 0.5 }}
+        >
+          <CircularProgress size={70} sx={{ color: "#5a67d8" }} />
+        </motion.div>
       </Box>
     );
   }
@@ -191,36 +197,86 @@ const CampaignDetails = () => {
           justifyContent: "center",
           alignItems: "center",
           minHeight: "100vh",
-          bgcolor: "background.default",
+          background: "linear-gradient(135deg, #f5f7fa 0%, #e4e7ff 100%)",
         }}
       >
-        <ErrorIcon sx={{ fontSize: 60, color: "error.main", mb: 2 }} />
-        <Typography variant="h5" color="error" sx={{ mb: 2 }}>
-          {error}
-        </Typography>
-        <Button
-          variant="contained"
-          color="primary"
-          size="large"
-          sx={{ fontWeight: 600, px: 4 }}
-          onClick={() => window.location.reload()}
+        <motion.div
+          initial={{ y: -20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ duration: 0.5 }}
         >
-          Try Again
-        </Button>
+          <Box
+            sx={{
+              bgcolor: "background.paper",
+              p: 4,
+              borderRadius: 4,
+              boxShadow: "0px 20px 40px rgba(0,0,0,0.1)",
+              textAlign: "center",
+              maxWidth: 500,
+            }}
+          >
+            <ErrorIcon sx={{ fontSize: 60, color: "#ef4444", mb: 2 }} />
+            <Typography
+              variant="h5"
+              color="text.primary"
+              sx={{ mb: 2, fontWeight: 700 }}
+            >
+              {error}
+            </Typography>
+            <Button
+              variant="contained"
+              color="primary"
+              size="large"
+              sx={{
+                fontWeight: 600,
+                px: 4,
+                background: "linear-gradient(90deg, #5a67d8 0%, #8b5cf6 100%)",
+                boxShadow: "0 4px 6px rgba(92, 107, 192, 0.3)",
+                borderRadius: 3,
+                mt: 2,
+              }}
+              onClick={() => window.location.reload()}
+            >
+              Try Again
+            </Button>
+          </Box>
+        </motion.div>
       </Box>
     );
   }
 
+  // Function to format currency in Indian Rupees
+  const formatRupees = (amount) => {
+    return new Intl.NumberFormat("en-IN", {
+      style: "currency",
+      currency: "INR",
+      maximumFractionDigits: 0,
+    }).format(amount);
+  };
+
   return (
-    <Box sx={{ bgcolor: "background.default", minHeight: "100vh" }}>
-      <Container maxWidth="lg" sx={{ pt: isMobile ? 2 : 6, pb: 3 }}>
+    <Box
+      sx={{
+        background: "linear-gradient(135deg, #f5f7fa 0%, #e4e7ff 100%)",
+        minHeight: "100vh",
+        py: 4,
+      }}
+    >
+      <Container maxWidth="lg" sx={{ pt: isMobile ? 2 : 4, pb: 3 }}>
         {/* Header with Back Button */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
         >
-          <Box sx={{ display: "flex", alignItems: "center", mb: 4 }}>
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              mb: 4,
+              flexWrap: "wrap",
+            }}
+          >
             <Box sx={{ flexGrow: 1 }}>
               <Typography
                 variant={isMobile ? "h5" : "h4"}
@@ -229,6 +285,7 @@ const CampaignDetails = () => {
                   fontWeight: 900,
                   letterSpacing: "0.02em",
                   color: "text.primary",
+                  mb: 0.5,
                 }}
               >
                 Campaign Details
@@ -250,8 +307,10 @@ const CampaignDetails = () => {
                 py: 1,
                 fontSize: "1rem",
                 fontWeight: 700,
-                borderRadius: 2,
-                boxShadow: theme.shadows[1],
+                borderRadius: 3,
+                boxShadow: "0 4px 6px rgba(0,0,0,0.05)",
+                height: "auto",
+                minHeight: 40,
               }}
             />
           </Box>
@@ -275,38 +334,40 @@ const CampaignDetails = () => {
               transition={{ duration: 0.5, delay: 0.1 }}
             >
               <Card
-                elevation={0}
                 sx={{
                   mb: isMobile ? 2 : 4,
                   borderRadius: 4,
                   bgcolor: "background.paper",
-                  border: `1px solid ${theme.palette.divider}`,
+                  boxShadow: "0 10px 25px rgba(0,0,0,0.05)",
                   position: "relative",
                   overflow: "visible",
+                  border: "none",
                   "&:before": {
                     content: '""',
                     position: "absolute",
                     top: 0,
                     left: 0,
                     right: 0,
-                    height: 4,
+                    height: 6,
                     borderTopLeftRadius: 4,
                     borderTopRightRadius: 4,
-                    background: theme.palette.primary.main,
+                    background:
+                      "linear-gradient(90deg, #5a67d8 0%, #8b5cf6 100%)",
                   },
                 }}
               >
-                <CardContent sx={{ pt: 3 }}>
-                  <Grid container spacing={2} alignItems="center">
+                <CardContent sx={{ pt: 4, pb: 3 }}>
+                  <Grid container spacing={3} alignItems="center">
                     <Grid item>
                       <Avatar
-                        src={campaign.appLogo.url}
+                        src={campaign.appLogo?.url || ""}
                         alt="App Logo"
                         sx={{
                           width: isMobile ? 64 : 80,
                           height: isMobile ? 64 : 80,
                           borderRadius: 2,
-                          boxShadow: theme.shadows[4],
+                          boxShadow: "0 8px 16px rgba(92, 107, 192, 0.25)",
+                          border: "2px solid white",
                         }}
                       />
                     </Grid>
@@ -317,32 +378,15 @@ const CampaignDetails = () => {
                           alignItems: "center",
                           gap: 1,
                           mb: 0.5,
+                          flexWrap: "wrap",
                         }}
                       >
                         <Typography
                           variant={isMobile ? "h6" : "h5"}
-                          sx={{ fontWeight: 800 }}
+                          sx={{ fontWeight: 800, color: "#1e293b" }}
                         >
                           {campaign.name}
                         </Typography>
-                        <Button
-                          variant="outlined"
-                          size="small"
-                          startIcon={<Edit fontSize="small" />}
-                          onClick={handleEditOpen}
-                          sx={{
-                            ml: 1,
-                            textTransform: "none",
-                            fontWeight: 500,
-                            borderRadius: 2,
-                            borderWidth: 1,
-                            "&:hover": {
-                              borderWidth: 1,
-                            },
-                          }}
-                        >
-                          Edit
-                        </Button>
                       </Box>
 
                       <Box
@@ -354,7 +398,7 @@ const CampaignDetails = () => {
                         }}
                       >
                         <LinkIcon
-                          sx={{ mr: 0.8, color: "primary.main", fontSize: 18 }}
+                          sx={{ mr: 0.8, color: "#5a67d8", fontSize: 18 }}
                         />
                         <Tooltip
                           arrow
@@ -373,14 +417,14 @@ const CampaignDetails = () => {
                             target="_blank"
                             rel="noopener"
                             sx={{
-                              color: "primary.main",
+                              color: "#5a67d8",
                               wordBreak: "break-all",
                               textDecoration: "none",
                               fontWeight: 600,
                               transition: "color 0.2s",
                               "&:hover": {
                                 textDecoration: "underline",
-                                color: "secondary.main",
+                                color: "#8b5cf6",
                               },
                             }}
                           >
@@ -389,71 +433,50 @@ const CampaignDetails = () => {
                         </Tooltip>
                       </Box>
 
-                      <Box
-                        sx={{
-                          display: "flex",
-                          alignItems: "center",
-                          mt: 2,
-                          gap: 2,
-                        }}
-                      >
-                        <Box sx={{ display: "flex", alignItems: "center" }}>
-                          <Person
+                      <Grid container spacing={1} sx={{ mt: 2 }}>
+                        <Grid item>
+                          <Chip
+                            icon={<Person sx={{ fontSize: 18 }} />}
+                            label={`${campaign.installsCount} Installs`}
+                            size="small"
                             sx={{
-                              fontSize: 20,
-                              color: "text.secondary",
-                              mr: 1,
+                              fontWeight: 600,
+                              backgroundColor: "#e0f2fe",
+                              color: "#0c4a6e",
+                              px: 1.5,
+                              py: 1,
                             }}
                           />
-                          <Typography variant="body2" color="text.secondary">
-                            <Box
-                              component="span"
-                              sx={{ fontWeight: 600, color: "text.primary" }}
-                            >
-                              {campaign.installsCount}
-                            </Box>{" "}
-                            Installs
-                          </Typography>
-                        </Box>
-
-                        <Box sx={{ display: "flex", alignItems: "center" }}>
-                          <Stars
+                        </Grid>
+                        <Grid item>
+                          <Chip
+                            icon={<Stars sx={{ fontSize: 18 }} />}
+                            label={`${campaign.reviewCount} Reviews`}
+                            size="small"
                             sx={{
-                              fontSize: 20,
-                              color: "text.secondary",
-                              mr: 1,
+                              fontWeight: 600,
+                              backgroundColor: "#ede9fe",
+                              color: "#5b21b6",
+                              px: 1.5,
+                              py: 1,
                             }}
                           />
-                          <Typography variant="body2" color="text.secondary">
-                            <Box
-                              component="span"
-                              sx={{ fontWeight: 600, color: "text.primary" }}
-                            >
-                              {campaign.reviewCount}
-                            </Box>{" "}
-                            Reviews
-                          </Typography>
-                        </Box>
-
-                        <Box sx={{ display: "flex", alignItems: "center" }}>
-                          <TrendingUp
+                        </Grid>
+                        <Grid item>
+                          <Chip
+                            icon={<TrendingUp sx={{ fontSize: 18 }} />}
+                            label={`CPI: ₹${campaign.costPerInstall}`}
+                            size="small"
                             sx={{
-                              fontSize: 20,
-                              color: "text.secondary",
-                              mr: 1,
+                              fontWeight: 600,
+                              backgroundColor: "#dbeafe",
+                              color: "#1d4ed8",
+                              px: 1.5,
+                              py: 1,
                             }}
                           />
-                          <Typography variant="body2" color="text.secondary">
-                            CPI:{" "}
-                            <Box
-                              component="span"
-                              sx={{ fontWeight: 600, color: "text.primary" }}
-                            >
-                              ${campaign.costPerInstall}
-                            </Box>
-                          </Typography>
-                        </Box>
-                      </Box>
+                        </Grid>
+                      </Grid>
                     </Grid>
                   </Grid>
                 </CardContent>
@@ -473,29 +496,32 @@ const CampaignDetails = () => {
                   transition={{ duration: 0.5, delay: 0.15 }}
                 >
                   <Card
-                    elevation={0}
                     sx={{
                       borderRadius: 4,
-                      bgcolor: theme.palette.primary.light,
-                      background: `linear-gradient(135deg, ${theme.palette.primary.light} 0%, ${theme.palette.primary.lighter} 100%)`,
-                      border: `1px solid ${theme.palette.divider}`,
+                      background:
+                        "linear-gradient(135deg, #5a67d8 0%, #8b5cf6 100%)",
+                      color: "white",
                       height: "100%",
+                      boxShadow: "0 10px 20px rgba(92, 107, 192, 0.3)",
                     }}
                   >
-                    <CardContent>
+                    <CardContent sx={{ p: 3 }}>
                       <Box
-                        sx={{ display: "flex", alignItems: "center", mb: 1 }}
+                        sx={{ display: "flex", alignItems: "center", mb: 2 }}
                       >
-                        <MonetizationOn sx={{ mr: 1, color: "primary.dark" }} />
+                        <MonetizationOn sx={{ mr: 1, color: "white" }} />
                         <Typography
                           variant="subtitle1"
-                          sx={{ fontWeight: 700, color: "primary.dark" }}
+                          sx={{ fontWeight: 700, color: "white" }}
                         >
                           Budget
                         </Typography>
                       </Box>
-                      <Typography variant="h5" sx={{ fontWeight: 800, mb: 1 }}>
-                        ${campaign.budgetTotal.toLocaleString()}
+                      <Typography
+                        variant="h5"
+                        sx={{ fontWeight: 800, mb: 1, color: "white" }}
+                      >
+                        {formatRupees(campaign.budgetTotal)}
                       </Typography>
                       <LinearProgress
                         variant="determinate"
@@ -503,10 +529,11 @@ const CampaignDetails = () => {
                         sx={{
                           height: 10,
                           borderRadius: 5,
-                          bgcolor: theme.palette.primary[100],
-                          mb: 1,
+                          bgcolor: "rgba(255,255,255,0.3)",
+                          mb: 1.5,
                           "& .MuiLinearProgress-bar": {
                             borderRadius: 5,
+                            bgcolor: "white",
                           },
                         }}
                       />
@@ -514,27 +541,27 @@ const CampaignDetails = () => {
                         sx={{
                           display: "flex",
                           justifyContent: "space-between",
+                          color: "rgba(255,255,255,0.8)",
                         }}
                       >
-                        <Typography variant="body2" color="text.secondary">
+                        <Typography variant="body2">
                           Spent:{" "}
                           <Box
                             component="span"
-                            sx={{ fontWeight: 600, color: "text.primary" }}
+                            sx={{ fontWeight: 600, color: "white" }}
                           >
-                            ${campaign.budgetSpent.toLocaleString()}
+                            {formatRupees(campaign.budgetSpent)}
                           </Box>
                         </Typography>
-                        <Typography variant="body2" color="text.secondary">
+                        <Typography variant="body2">
                           Remaining:{" "}
                           <Box
                             component="span"
-                            sx={{ fontWeight: 600, color: "text.primary" }}
+                            sx={{ fontWeight: 600, color: "white" }}
                           >
-                            $
-                            {(
+                            {formatRupees(
                               campaign.budgetTotal - campaign.budgetSpent
-                            ).toLocaleString()}
+                            )}
                           </Box>
                         </Typography>
                       </Box>
@@ -550,41 +577,44 @@ const CampaignDetails = () => {
                   transition={{ duration: 0.5, delay: 0.2 }}
                 >
                   <Card
-                    elevation={0}
                     sx={{
                       borderRadius: 4,
-                      bgcolor: theme.palette.secondary.light,
-                      background: `linear-gradient(135deg, ${theme.palette.secondary.light} 0%, ${theme.palette.secondary.lighter} 100%)`,
-                      border: `1px solid ${theme.palette.divider}`,
+                      background:
+                        "linear-gradient(135deg, #0ea5e9 0%, #06b6d4 100%)",
+                      color: "white",
                       height: "100%",
+                      boxShadow: "0 10px 20px rgba(14, 165, 233, 0.3)",
                     }}
                   >
-                    <CardContent>
+                    <CardContent sx={{ p: 3 }}>
                       <Box
-                        sx={{ display: "flex", alignItems: "center", mb: 1 }}
+                        sx={{ display: "flex", alignItems: "center", mb: 2 }}
                       >
-                        <BarChart sx={{ mr: 1, color: "secondary.dark" }} />
+                        <BarChart sx={{ mr: 1, color: "white" }} />
                         <Typography
                           variant="subtitle1"
-                          sx={{ fontWeight: 700, color: "secondary.dark" }}
+                          sx={{ fontWeight: 700, color: "white" }}
                         >
                           Performance
                         </Typography>
                       </Box>
-                      <Typography variant="h5" sx={{ fontWeight: 800, mb: 1 }}>
+                      <Typography
+                        variant="h5"
+                        sx={{ fontWeight: 800, mb: 1, color: "white" }}
+                      >
                         {campaign.installsCount}/{campaign.target} Installs
                       </Typography>
                       <LinearProgress
                         variant="determinate"
                         value={installsPercentage}
-                        color="secondary"
                         sx={{
                           height: 10,
                           borderRadius: 5,
-                          bgcolor: theme.palette.secondary[100],
-                          mb: 1,
+                          bgcolor: "rgba(255,255,255,0.3)",
+                          mb: 1.5,
                           "& .MuiLinearProgress-bar": {
                             borderRadius: 5,
+                            bgcolor: "white",
                           },
                         }}
                       />
@@ -592,22 +622,23 @@ const CampaignDetails = () => {
                         sx={{
                           display: "flex",
                           justifyContent: "space-between",
+                          color: "rgba(255,255,255,0.8)",
                         }}
                       >
-                        <Typography variant="body2" color="text.secondary">
+                        <Typography variant="body2">
                           Target:{" "}
                           <Box
                             component="span"
-                            sx={{ fontWeight: 600, color: "text.primary" }}
+                            sx={{ fontWeight: 600, color: "white" }}
                           >
                             {campaign.target}
                           </Box>
                         </Typography>
-                        <Typography variant="body2" color="text.secondary">
+                        <Typography variant="body2">
                           Progress:{" "}
                           <Box
                             component="span"
-                            sx={{ fontWeight: 600, color: "text.primary" }}
+                            sx={{ fontWeight: 600, color: "white" }}
                           >
                             {installsPercentage.toFixed(1)}%
                           </Box>
@@ -626,84 +657,94 @@ const CampaignDetails = () => {
               transition={{ duration: 0.5, delay: 0.25 }}
             >
               <Card
-                elevation={0}
                 sx={{
                   borderRadius: 4,
                   bgcolor: "background.paper",
-                  border: `1px solid ${theme.palette.divider}`,
+                  boxShadow: "0 10px 25px rgba(0,0,0,0.05)",
                   mb: isMobile ? 2 : 4,
+                  border: "none",
                 }}
               >
                 <CardContent>
-                  <Typography variant="h6" sx={{ fontWeight: 700, mb: 2 }}>
+                  <Typography
+                    variant="h6"
+                    sx={{
+                      fontWeight: 700,
+                      mb: 3,
+                      display: "flex",
+                      alignItems: "center",
+                    }}
+                  >
+                    <Assignment sx={{ mr: 1, color: "#5a67d8" }} />
                     Campaign Information
                   </Typography>
 
                   <Grid container spacing={2}>
                     <Grid item xs={12} sm={6}>
-                      <Box sx={{ display: "flex", mb: 2 }}>
-                        <Box sx={{ minWidth: 120 }}>
+                      <Box sx={{ display: "flex", mb: 3 }}>
+                        <Box
+                          sx={{
+                            minWidth: 120,
+                            display: "flex",
+                            alignItems: "center",
+                          }}
+                        >
+                          <Public
+                            sx={{ mr: 1, fontSize: 20, color: "#64748b" }}
+                          />
                           <Typography variant="body2" color="text.secondary">
                             Type
                           </Typography>
                         </Box>
                         <Chip
-                          label={campaign.type.toUpperCase()}
+                          label={campaign.type?.toUpperCase() || "N/A"}
                           size="small"
                           sx={{
                             fontWeight: 600,
-                            backgroundColor: theme.palette.info.light,
-                            color: theme.palette.info.dark,
+                            backgroundColor: "#ede9fe",
+                            color: "#7c3aed",
+                            height: 28,
                           }}
                         />
                       </Box>
                     </Grid>
-
-                    <Grid item xs={12} sm={6}>
-                      <Box sx={{ display: "flex", mb: 2 }}>
-                        <Box sx={{ minWidth: 120 }}>
-                          <Typography variant="body2" color="text.secondary">
-                            Created
-                          </Typography>
-                        </Box>
-                        <Typography variant="body2" sx={{ fontWeight: 500 }}>
-                          {format(new Date(), "MMM d, yyyy")}
-                        </Typography>
-                      </Box>
-
-                      <Box sx={{ display: "flex", mb: 2 }}>
-                        <Box sx={{ minWidth: 120 }}>
-                          <Typography variant="body2" color="text.secondary">
-                            Last Updated
-                          </Typography>
-                        </Box>
-                        <Typography variant="body2" sx={{ fontWeight: 500 }}>
-                          {format(new Date(), "MMM d, yyyy")}
-                        </Typography>
-                      </Box>
-                    </Grid>
                   </Grid>
 
-                  <Divider sx={{ my: 2 }} />
+                  <Divider sx={{ my: 3, borderColor: "#e2e8f0" }} />
 
                   <Box>
                     <Typography
                       variant="subtitle1"
-                      sx={{ fontWeight: 600, mb: 1 }}
+                      sx={{
+                        fontWeight: 600,
+                        mb: 3,
+                        display: "flex",
+                        alignItems: "center",
+                      }}
                     >
+                      <Insights sx={{ mr: 1, color: "#5a67d8" }} />
                       Campaign Metrics
                     </Typography>
                     <Grid container spacing={2}>
                       <Grid item xs={6} sm={3}>
-                        <Box sx={{ textAlign: "center" }}>
+                        <Box
+                          sx={{
+                            textAlign: "center",
+                            bgcolor: "#f0fdfa",
+                            p: 2,
+                            borderRadius: 3,
+                            border: "1px solid #ccfbf1",
+                          }}
+                        >
                           <Typography
                             variant="h4"
                             sx={{
                               fontWeight: 800,
-                              color: theme.palette.primary.main,
+                              color: "#0d9488",
+                              mb: 1,
                             }}
                           >
-                            {campaign.installsCount}
+                            {campaign.installsCount || 0}
                           </Typography>
                           <Typography variant="body2" color="text.secondary">
                             Installs
@@ -711,15 +752,24 @@ const CampaignDetails = () => {
                         </Box>
                       </Grid>
                       <Grid item xs={6} sm={3}>
-                        <Box sx={{ textAlign: "center" }}>
+                        <Box
+                          sx={{
+                            textAlign: "center",
+                            bgcolor: "#f5f3ff",
+                            p: 2,
+                            borderRadius: 3,
+                            border: "1px solid #ede9fe",
+                          }}
+                        >
                           <Typography
                             variant="h4"
                             sx={{
                               fontWeight: 800,
-                              color: theme.palette.secondary.main,
+                              color: "#7c3aed",
+                              mb: 1,
                             }}
                           >
-                            {campaign.reviewCount}
+                            {campaign.reviewCount || 0}
                           </Typography>
                           <Typography variant="body2" color="text.secondary">
                             Reviews
@@ -727,15 +777,24 @@ const CampaignDetails = () => {
                         </Box>
                       </Grid>
                       <Grid item xs={6} sm={3}>
-                        <Box sx={{ textAlign: "center" }}>
+                        <Box
+                          sx={{
+                            textAlign: "center",
+                            bgcolor: "#eff6ff",
+                            p: 2,
+                            borderRadius: 3,
+                            border: "1px solid #dbeafe",
+                          }}
+                        >
                           <Typography
                             variant="h4"
                             sx={{
                               fontWeight: 800,
-                              color: theme.palette.warning.main,
+                              color: "#2563eb",
+                              mb: 1,
                             }}
                           >
-                            ${campaign.costPerInstall}
+                            ₹{campaign.costPerInstall || 0}
                           </Typography>
                           <Typography variant="body2" color="text.secondary">
                             CPI
@@ -743,15 +802,24 @@ const CampaignDetails = () => {
                         </Box>
                       </Grid>
                       <Grid item xs={6} sm={3}>
-                        <Box sx={{ textAlign: "center" }}>
+                        <Box
+                          sx={{
+                            textAlign: "center",
+                            bgcolor: "#f0f9ff",
+                            p: 2,
+                            borderRadius: 3,
+                            border: "1px solid #e0f2fe",
+                          }}
+                        >
                           <Typography
                             variant="h4"
                             sx={{
                               fontWeight: 800,
-                              color: theme.palette.success.main,
+                              color: "#0284c7",
+                              mb: 1,
                             }}
                           >
-                            {campaign.target}
+                            {campaign.target || 0}
                           </Typography>
                           <Typography variant="body2" color="text.secondary">
                             Target
@@ -774,17 +842,17 @@ const CampaignDetails = () => {
               transition={{ duration: 0.5, delay: 0.3 }}
             >
               <Card
-                elevation={0}
                 sx={{
                   borderRadius: 4,
                   bgcolor: "background.paper",
-                  border: `1px solid ${theme.palette.divider}`,
+                  boxShadow: "0 10px 25px rgba(0,0,0,0.05)",
                   mb: isMobile ? 2 : 4,
+                  border: "none",
                 }}
               >
                 <CardContent>
-                  <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
-                    <Campaign sx={{ mr: 1, color: "primary.main" }} />
+                  <Box sx={{ display: "flex", alignItems: "center", mb: 3 }}>
+                    <Campaign sx={{ mr: 1, color: "#5a67d8" }} />
                     <Typography variant="h6" sx={{ fontWeight: 700 }}>
                       Campaign Status
                     </Typography>
@@ -794,14 +862,15 @@ const CampaignDetails = () => {
                     sx={{
                       p: 3,
                       borderRadius: 3,
-                      backgroundColor:
+                      background:
                         campaign.status === "active"
-                          ? theme.palette.success.light
+                          ? "linear-gradient(135deg, #10b981 0%, #34d399 100%)"
                           : campaign.status === "pending"
-                          ? theme.palette.warning.light
-                          : theme.palette.primary.light,
+                          ? "linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%)"
+                          : "linear-gradient(135deg, #8b5cf6 0%, #a78bfa 100%)",
                       textAlign: "center",
-                      mb: 2,
+                      mb: 3,
+                      boxShadow: "0 5px 15px rgba(0,0,0,0.08)",
                     }}
                   >
                     <Box
@@ -812,13 +881,9 @@ const CampaignDetails = () => {
                         width: 80,
                         height: 80,
                         borderRadius: "50%",
-                        backgroundColor:
-                          campaign.status === "active"
-                            ? theme.palette.success.main
-                            : campaign.status === "pending"
-                            ? theme.palette.warning.main
-                            : theme.palette.primary.main,
+                        backgroundColor: "white",
                         mb: 2,
+                        boxShadow: "0 8px 16px rgba(0,0,0,0.15)",
                       }}
                     >
                       {getStatusIcon(campaign.status)}
@@ -827,44 +892,43 @@ const CampaignDetails = () => {
                       variant="h6"
                       sx={{
                         fontWeight: 800,
-                        color:
-                          campaign.status === "active"
-                            ? theme.palette.success.dark
-                            : campaign.status === "pending"
-                            ? theme.palette.warning.dark
-                            : theme.palette.primary.dark,
+                        color: "white",
+                        mb: 1,
                       }}
                     >
-                      {campaign.status.charAt(0).toUpperCase() +
-                        campaign.status.slice(1)}
+                      {campaign.status?.charAt(0).toUpperCase() +
+                        campaign.status?.slice(1) || "Unknown"}
                     </Typography>
                     <Typography
                       variant="body2"
-                      sx={{ mt: 1, color: "text.secondary" }}
+                      sx={{ mt: 1, color: "rgba(255,255,255,0.9)" }}
                     >
                       {campaign.status === "active"
                         ? "Campaign is currently active and running"
                         : campaign.status === "pending"
                         ? "Campaign is pending approval"
-                        : "Campaign has been completed"}
+                        : campaign.status === "completed"
+                        ? "Campaign has been completed"
+                        : "Unknown campaign status"}
                     </Typography>
                   </Box>
 
                   <Button
                     variant="contained"
                     fullWidth
-                    color="primary"
                     startIcon={<Edit />}
                     onClick={handleEditOpen}
                     sx={{
                       py: 1.5,
-                      borderRadius: 2,
+                      borderRadius: 3,
                       fontWeight: 700,
                       fontSize: "1rem",
                       textTransform: "none",
-                      boxShadow: "none",
+                      background:
+                        "linear-gradient(90deg, #5a67d8 0%, #8b5cf6 100%)",
+                      boxShadow: "0 4px 6px rgba(92, 107, 192, 0.3)",
                       "&:hover": {
-                        boxShadow: theme.shadows[2],
+                        boxShadow: "0 6px 8px rgba(92, 107, 192, 0.4)",
                       },
                     }}
                   >
@@ -881,16 +945,16 @@ const CampaignDetails = () => {
               transition={{ duration: 0.5, delay: 0.35 }}
             >
               <Card
-                elevation={0}
                 sx={{
                   borderRadius: 4,
                   bgcolor: "background.paper",
-                  border: `1px solid ${theme.palette.divider}`,
+                  boxShadow: "0 10px 25px rgba(0,0,0,0.05)",
+                  border: "none",
                 }}
               >
                 <CardContent>
-                  <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
-                    <TrendingUp sx={{ mr: 1, color: "primary.main" }} />
+                  <Box sx={{ display: "flex", alignItems: "center", mb: 3 }}>
+                    <TrendingUp sx={{ mr: 1, color: "#5a67d8" }} />
                     <Typography variant="h6" sx={{ fontWeight: 700 }}>
                       Performance Overview
                     </Typography>
@@ -900,7 +964,7 @@ const CampaignDetails = () => {
                     <Typography
                       variant="body2"
                       color="text.secondary"
-                      sx={{ mb: 1 }}
+                      sx={{ mb: 1, fontWeight: 500 }}
                     >
                       Budget Utilization
                     </Typography>
@@ -911,14 +975,21 @@ const CampaignDetails = () => {
                         height: 12,
                         borderRadius: 6,
                         mb: 1,
+                        bgcolor: "#e2e8f0",
                         "& .MuiLinearProgress-bar": {
                           borderRadius: 6,
+                          background:
+                            "linear-gradient(90deg, #5a67d8 0%, #8b5cf6 100%)",
                         },
                       }}
                     />
                     <Typography
                       variant="body2"
-                      sx={{ textAlign: "right", fontWeight: 500 }}
+                      sx={{
+                        textAlign: "right",
+                        fontWeight: 600,
+                        color: "#5a67d8",
+                      }}
                     >
                       {budgetPercentage.toFixed(1)}%
                     </Typography>
@@ -928,26 +999,32 @@ const CampaignDetails = () => {
                     <Typography
                       variant="body2"
                       color="text.secondary"
-                      sx={{ mb: 1 }}
+                      sx={{ mb: 1, fontWeight: 500 }}
                     >
                       Install Target
                     </Typography>
                     <LinearProgress
                       variant="determinate"
                       value={installsPercentage}
-                      color="secondary"
                       sx={{
                         height: 12,
                         borderRadius: 6,
                         mb: 1,
+                        bgcolor: "#e2e8f0",
                         "& .MuiLinearProgress-bar": {
                           borderRadius: 6,
+                          background:
+                            "linear-gradient(90deg, #0ea5e9 0%, #06b6d4 100%)",
                         },
                       }}
                     />
                     <Typography
                       variant="body2"
-                      sx={{ textAlign: "right", fontWeight: 500 }}
+                      sx={{
+                        textAlign: "right",
+                        fontWeight: 600,
+                        color: "#0ea5e9",
+                      }}
                     >
                       {installsPercentage.toFixed(1)}%
                     </Typography>
@@ -956,20 +1033,24 @@ const CampaignDetails = () => {
                   <Box
                     sx={{
                       mt: 3,
-                      p: 2,
-                      backgroundColor: theme.palette.grey[100],
-                      borderRadius: 2,
+                      p: 3,
+                      backgroundColor: "#f8fafc",
+                      borderRadius: 3,
+                      border: "1px solid #f1f5f9",
                     }}
                   >
-                    <Typography variant="body2" sx={{ fontWeight: 600, mb: 1 }}>
+                    <Typography
+                      variant="body2"
+                      sx={{ fontWeight: 600, mb: 1, color: "#334155" }}
+                    >
                       Performance Insights
                     </Typography>
                     <Typography variant="body2" color="text.secondary">
                       {installsPercentage >= 75
-                        ? "Great progress! Your campaign is performing well above average."
+                        ? "Excellent progress! Your campaign is exceeding expectations."
                         : installsPercentage >= 50
-                        ? "Good progress. Consider optimizing your ad placements."
-                        : "Needs improvement. Review your targeting and creatives."}
+                        ? "Good results. Consider optimizing ad placements for better ROI."
+                        : "Needs improvement. Review targeting and creative assets for better performance."}
                     </Typography>
                   </Box>
                 </CardContent>
@@ -983,21 +1064,28 @@ const CampaignDetails = () => {
       <Dialog
         open={editOpen}
         onClose={handleEditClose}
-        PaperProps={{ sx: { borderRadius: 4 } }}
+        PaperProps={{
+          sx: {
+            borderRadius: 4,
+            width: isMobile ? "90%" : "500px",
+            overflow: "visible",
+          },
+        }}
       >
         <DialogTitle
           sx={{
             bgcolor: "background.paper",
             borderBottom: `1px solid ${theme.palette.divider}`,
+            fontWeight: 700,
+            display: "flex",
+            alignItems: "center",
           }}
         >
-          <Box sx={{ display: "flex", alignItems: "center" }}>
-            <Edit sx={{ mr: 1, color: "primary.main" }} />
-            Edit Campaign Name
-          </Box>
+          <Edit sx={{ mr: 1, color: "#5a67d8" }} />
+          Edit Campaign Name
         </DialogTitle>
         <DialogContent sx={{ bgcolor: "background.paper", py: 3 }}>
-          <DialogContentText sx={{ mb: 2 }}>
+          <DialogContentText sx={{ mb: 2, color: "#64748b" }}>
             Update the name of your campaign. This will be visible in all
             campaign reports.
           </DialogContentText>
@@ -1012,6 +1100,11 @@ const CampaignDetails = () => {
             onChange={handleNameChange}
             disabled={updateLoading}
             sx={{ mb: 2 }}
+            InputProps={{
+              sx: {
+                borderRadius: 3,
+              },
+            }}
           />
         </DialogContent>
         <DialogActions
@@ -1026,18 +1119,36 @@ const CampaignDetails = () => {
             onClick={handleEditClose}
             color="inherit"
             disabled={updateLoading}
-            sx={{ fontWeight: 600, borderRadius: 2 }}
+            sx={{
+              fontWeight: 600,
+              borderRadius: 3,
+              px: 3,
+              py: 1,
+            }}
           >
             Cancel
           </Button>
           <Button
             onClick={handleUpdateCampaign}
-            color="primary"
             variant="contained"
             disabled={updateLoading || !newName.trim()}
-            sx={{ fontWeight: 600, borderRadius: 2, boxShadow: "none", px: 3 }}
+            sx={{
+              fontWeight: 600,
+              borderRadius: 3,
+              px: 4,
+              py: 1,
+              background: "linear-gradient(90deg, #5a67d8 0%, #8b5cf6 100%)",
+              boxShadow: "0 4px 6px rgba(92, 107, 192, 0.3)",
+              "&:hover": {
+                boxShadow: "0 6px 8px rgba(92, 107, 192, 0.4)",
+              },
+            }}
           >
-            {updateLoading ? <CircularProgress size={24} /> : "Save Changes"}
+            {updateLoading ? (
+              <CircularProgress size={24} sx={{ color: "white" }} />
+            ) : (
+              "Save Changes"
+            )}
           </Button>
         </DialogActions>
       </Dialog>
@@ -1054,9 +1165,10 @@ const CampaignDetails = () => {
           severity={snackbarSeverity}
           sx={{
             width: "100%",
-            borderRadius: 2,
-            boxShadow: theme.shadows[4],
+            borderRadius: 3,
+            boxShadow: "0 10px 25px rgba(0,0,0,0.1)",
             fontWeight: 500,
+            alignItems: "center",
           }}
         >
           {snackbarMessage}
