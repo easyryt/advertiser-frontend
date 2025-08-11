@@ -700,8 +700,8 @@ const CampaignsPage = () => {
                       variant="outlined"
                       sx={{ borderRadius: 2 }}
                     >
-                      <MenuItem value="cpi">CPI (Cost Per Install)</MenuItem>
-                      <MenuItem value="review">Review Campaign</MenuItem>
+                      <MenuItem value="cpi">Install</MenuItem>
+                      <MenuItem value="review">Review</MenuItem>
                     </Select>
                     {formErrors.type && (
                       <FormHelperText>{formErrors.type}</FormHelperText>
@@ -827,7 +827,7 @@ const CampaignsPage = () => {
                               <Stack direction="row" alignItems="center" spacing={1.5}>
                                 <CheckCircle sx={{ color: theme.palette.success.main }} />
                                 <Typography variant="body1">
-                                  CPI Model
+                                  Installation Model
                                 </Typography>
                               </Stack>
                               <Stack direction="row" alignItems="center" spacing={1.5}>

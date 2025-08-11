@@ -88,7 +88,7 @@ export default function DashboardLayout() {
     { text: "Dashboard", icon: "Dashboard", path: "/dashboard" },
     { text: "Campaigns", icon: "BallotIcon", path: "/dashboard/campaigns" },
     { text: "Profile", icon: "People", path: "/profile-page" },
-    { text: "Settings", icon: "Settings", path: "/dashboard/settings" },
+    // { text: "Settings", icon: "Settings", path: "/dashboard/settings" },
   ];
 
   return (
@@ -250,22 +250,6 @@ export default function DashboardLayout() {
             }}
           />
           My Profile
-        </MenuItem>
-        <MenuItem
-          sx={{ py: 1.6 }}
-          onClick={() => {
-            navigate("/dashboard/settings");
-            handleMenuClose();
-          }}
-        >
-          <SettingsIcon
-            sx={{
-              mr: 1.5,
-              fontSize: 22,
-              color: "text.secondary",
-            }}
-          />
-          Account Settings
         </MenuItem>
         <Divider sx={{ my: 0.5 }} />
         <MenuItem
