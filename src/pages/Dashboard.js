@@ -453,7 +453,7 @@ const Dashboard = () => {
             mt: 3,
             display: 'grid',
             gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' },
-            gap: 24
+            gap: 5
           }}
         >
           {/* Monthly Performance - Wide and Not Cropped */}
@@ -591,7 +591,7 @@ const Dashboard = () => {
             mt: 3,
             display: 'grid',
             gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' },
-            gap: 24
+            gap: 5
           }}
         >
           {/* Campaign Performance & Metrics */}
