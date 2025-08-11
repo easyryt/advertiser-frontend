@@ -332,8 +332,7 @@ const ProfilePage = () => {
                       }
                       secondary={
                         <Box display="flex" alignItems="center" fontWeight={800} fontSize={22} color="#059669">
-                          <MonetizationOn sx={{ mr: 1, fontSize: 24 }} />
-                          {`$${(profile?.wallet || 0).toLocaleString(undefined, {
+                          {`₹${(profile?.wallet || 0).toLocaleString(undefined, {
                             minimumFractionDigits: 2,
                             maximumFractionDigits: 2
                           })}`}
@@ -448,7 +447,7 @@ const ProfilePage = () => {
                   <Stack direction={{ xs: 'column', sm: 'row' }} gap={2} alignItems="flex-start">
                     <TextField
                       type="number"
-                      label="Amount ($)"
+                      label="Amount (₹)"
                       size="medium"
                       value={walletValue}
                       required
