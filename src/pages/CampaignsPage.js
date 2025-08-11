@@ -99,12 +99,13 @@ const CampaignsPage = () => {
     }
   };
 
-  const fetchPlans = async () => {
+  // Updated to accept type parameter
+  const fetchPlans = async (type) => {
     try {
       setLoadingPlans(true);
       setPlanError("");
       const response = await axios.get(
-        "https://advertiserappnew.onrender.com/adv/campaign/get/plans",
+        `https://advertiserappnew.onrender.com/adv/campaign/get/plans?planType=${type}`,
         { withCredentials: true }
       );
       if (response.data.status && Array.isArray(response.data.data)) {
@@ -142,7 +143,8 @@ const CampaignsPage = () => {
     if (activeStep === 0) {
       if (validateCampaignDetails()) {
         setActiveStep(1);
-        fetchPlans();
+        // Pass the selected type to fetch plans
+        fetchPlans(formData.type);
       }
     } else if (activeStep === 1) {
       if (selectedPlan) {
@@ -264,7 +266,7 @@ const CampaignsPage = () => {
             bgcolor: params.value === "cpi" ? "#e8f5e9" : "#e3f2fd",
             color: params.value === "cpi" ? "#2e7d32" : "#1976d2",
             fontWeight: 700,
-            textTransform: "uppercase",
+            textTransform: 'uppercase',
             px: 1,
             py: 0.5,
             borderRadius: 1,
@@ -821,13 +823,17 @@ const CampaignsPage = () => {
                               <Stack direction="row" alignItems="center" spacing={1.5}>
                                 <CheckCircle sx={{ color: theme.palette.success.main }} />
                                 <Typography variant="body1">
-                                  {plan.installs} Installs
+                                  {formData.type === 'cpi' 
+                                    ? `${plan.installs} Installs` 
+                                    : `${plan.reviews} Reviews`}
                                 </Typography>
                               </Stack>
                               <Stack direction="row" alignItems="center" spacing={1.5}>
                                 <CheckCircle sx={{ color: theme.palette.success.main }} />
                                 <Typography variant="body1">
-                                  Installation Model
+                                  {formData.type === 'cpi' 
+                                    ? "Installation Model" 
+                                    : "Review Collection"}
                                 </Typography>
                               </Stack>
                               <Stack direction="row" alignItems="center" spacing={1.5}>
