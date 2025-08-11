@@ -63,6 +63,7 @@ import {
   BarChart as BarChartIcon,
   Close,
   Check,
+  ArrowForward,
 } from "@mui/icons-material";
 import { motion } from "framer-motion";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
@@ -856,14 +857,20 @@ const Dashboard = () => {
 
   const activeFilters = getActiveFilters();
 
-  // ─── helper utilities ──────────────────────────────────────────────────────────
-  const getVal = (v, fallback = "—") => (v === 0 || v ? v : fallback);
-
   const formatDate = (value) => {
     if (!value) return "—";
     const d = new Date(value);
     return Number.isNaN(d.getTime()) ? String(value) : d.toLocaleString();
   };
+
+  // Add short date formatter
+const formatShortDate = (value) => {
+  if (!value) return "—";
+  const d = new Date(value);
+  return Number.isNaN(d.getTime())
+    ? String(value)
+    : d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+};
 
   return (
     <Box
@@ -1320,115 +1327,73 @@ const Dashboard = () => {
                 </Tooltip>
               </Box>
             </Box>
-            <Paper elevation={0} sx={tableCardSX}>
-              <TableContainer>
-                <Table size="small">
+
+            {/* Premium Table Container */}
+            <Paper
+              elevation={0}
+              sx={{
+                borderRadius: 4,
+                overflow: "hidden",
+                background:
+                  "linear-gradient(to bottom right, #ffffff, #f9faff)",
+                border: "1px solid rgba(224, 230, 255, 0.7)",
+                boxShadow:
+                  "0 12px 40px -10px rgba(101, 116, 255, 0.08), 0 1.5px 10px -3px rgba(0,0,0,0.03)",
+              }}
+            >
+              <TableContainer sx={{ maxHeight: 600 }}>
+                <Table size="small" stickyHeader>
                   <TableHead>
-                    <TableRow>
+                    <TableRow sx={{ bgcolor: "#f5f8ff" }}>
                       <TableCell
-                        sx={{ fontWeight: 800, color: "text.secondary" }}
+                        sx={{ fontWeight: 800, color: "text.secondary", py: 2 }}
                       >
                         App
                       </TableCell>
                       <TableCell
-                        sx={{ fontWeight: 800, color: "text.secondary" }}
+                        sx={{ fontWeight: 800, color: "text.secondary", py: 2 }}
                       >
                         Name
                       </TableCell>
                       <TableCell
-                        align="right"
-                        sx={{ fontWeight: 800, color: "text.secondary" }}
+                        align="center"
+                        sx={{ fontWeight: 800, color: "text.secondary", py: 2 }}
                       >
                         Type
                       </TableCell>
                       <TableCell
-                        align="right"
-                        sx={{ fontWeight: 800, color: "text.secondary" }}
+                        align="center"
+                        sx={{ fontWeight: 800, color: "text.secondary", py: 2 }}
                       >
                         Status
                       </TableCell>
                       <TableCell
-                        align="right"
-                        sx={{ fontWeight: 800, color: "text.secondary" }}
+                        align="center"
+                        sx={{ fontWeight: 800, color: "text.secondary", py: 2 }}
                       >
-                        Total Budget
+                        Budget
                       </TableCell>
                       <TableCell
-                        align="right"
-                        sx={{ fontWeight: 800, color: "text.secondary" }}
+                        align="center"
+                        sx={{ fontWeight: 800, color: "text.secondary", py: 2 }}
                       >
-                        Spent
+                        Performance
                       </TableCell>
                       <TableCell
-                        align="right"
-                        sx={{ fontWeight: 800, color: "text.secondary" }}
+                        align="center"
+                        sx={{ fontWeight: 800, color: "text.secondary", py: 2 }}
                       >
-                        Remaining
+                        Metrics
                       </TableCell>
                       <TableCell
-                        align="right"
-                        sx={{ fontWeight: 800, color: "text.secondary" }}
+                        align="center"
+                        sx={{ fontWeight: 800, color: "text.secondary", py: 2 }}
                       >
-                        Utilization
-                      </TableCell>
-                      <TableCell
-                        align="right"
-                        sx={{ fontWeight: 800, color: "text.secondary" }}
-                      >
-                        CPI/Cost
-                      </TableCell>
-                      <TableCell
-                        align="right"
-                        sx={{ fontWeight: 800, color: "text.secondary" }}
-                      >
-                        Installs
-                      </TableCell>
-                      <TableCell
-                        align="right"
-                        sx={{ fontWeight: 800, color: "text.secondary" }}
-                      >
-                        Reviews
-                      </TableCell>
-                      <TableCell
-                        align="right"
-                        sx={{ fontWeight: 800, color: "text.secondary" }}
-                      >
-                        Clicks
-                      </TableCell>
-                      <TableCell
-                        sx={{ fontWeight: 800, color: "text.secondary" }}
-                      >
-                        Package URL
-                      </TableCell>
-                      <TableCell
-                        align="right"
-                        sx={{ fontWeight: 800, color: "text.secondary" }}
-                      >
-                        CTR
-                      </TableCell>
-                      <TableCell
-                        align="right"
-                        sx={{ fontWeight: 800, color: "text.secondary" }}
-                      >
-                        CPC
-                      </TableCell>
-                      <TableCell
-                        sx={{ fontWeight: 800, color: "text.secondary" }}
-                      >
-                        Created At
-                      </TableCell>
-                      <TableCell
-                        sx={{ fontWeight: 800, color: "text.secondary" }}
-                      >
-                        Start Date
-                      </TableCell>
-                      <TableCell
-                        sx={{ fontWeight: 800, color: "text.secondary" }}
-                      >
-                        End Date
+                        Timeline
                       </TableCell>
                     </TableRow>
                   </TableHead>
+
                   <TableBody>
                     {(campaigns || []).map((campaign) => {
                       const util =
@@ -1436,144 +1401,277 @@ const Dashboard = () => {
                         (campaign?.budgetTotal
                           ? (campaign?.budgetSpent || 0) / campaign.budgetTotal
                           : 0);
+
                       return (
                         <TableRow
                           key={campaign._id || Math.random()}
                           hover
                           sx={{
-                            "&:last-child td, &:last-child th": { border: 0 },
+                            "&:last-child td": { border: 0 },
+                            transition: "background-color 0.2s",
+                            "&:hover": { bgcolor: "#f9faff" },
                           }}
                         >
-                          <TableCell>
+                          {/* App Logo */}
+                          <TableCell sx={{ py: 2 }}>
                             <Box display="flex" alignItems="center">
                               <Avatar
                                 src={campaign?.appLogo?.url || ""}
                                 sx={{
-                                  bgcolor: getStatusColor(campaign.status),
-                                  width: 38,
-                                  height: 38,
+                                  bgcolor: getStatusColor(campaign?.status),
+                                  width: 42,
+                                  height: 42,
                                   fontWeight: 700,
                                   mr: 2,
                                   fontSize: 20,
+                                  boxShadow:
+                                    "0 3px 10px rgba(101, 116, 255, 0.15)",
                                 }}
                               >
-                                {campaign?.name?.charAt?.(0)?.toUpperCase?.()}
+                                {campaign?.name?.charAt?.(0)?.toUpperCase?.() ||
+                                  "A"}
                               </Avatar>
                             </Box>
                           </TableCell>
-                          <TableCell>
-                            <Typography fontWeight={700}>
+
+                          {/* Campaign Name */}
+                          <TableCell sx={{ py: 2 }}>
+                            <Typography fontWeight={700} sx={{ mb: 0.5 }}>
                               {campaign?.name || "—"}
                             </Typography>
+                            <Typography
+                              variant="caption"
+                              color="text.secondary"
+                            >
+                              {campaign?.packageName?.split?.("/")?.pop?.() ||
+                                "—"}
+                            </Typography>
                           </TableCell>
-                          <TableCell align="right">
-                            {(campaign?.type || "—").toString().toUpperCase()}
-                          </TableCell>
-                          <TableCell align="right">
-                            <Box
-                              component="span"
-                              px={1.5}
-                              py={0.5}
-                              borderRadius={2}
-                              color="#fff"
-                              fontWeight={700}
-                              fontSize="0.97rem"
-                              textTransform="capitalize"
+
+                          {/* Campaign Type */}
+                          <TableCell align="center" sx={{ py: 2 }}>
+                            <Chip
+                              label={(campaign?.type || "—")
+                                .toString()
+                                .toUpperCase()}
+                              size="small"
                               sx={{
-                                background: getStatusColor(campaign.status),
+                                bgcolor:
+                                  theme.palette.type === "light"
+                                    ? alpha(theme.palette.primary.light, 0.2)
+                                    : alpha(theme.palette.primary.dark, 0.3),
+                                color: theme.palette.primary.dark,
+                                fontWeight: 700,
+                                px: 1,
+                                borderRadius: 1,
                               }}
-                            >
-                              {campaign?.status || "—"}
-                            </Box>
+                            />
                           </TableCell>
-                          <TableCell align="right">
-                            {formatCurrency(getVal(campaign?.budgetTotal, 0))}
+
+                          {/* Status */}
+                          <TableCell align="center" sx={{ py: 2 }}>
+                            <Chip
+                              label={campaign?.status || "—"}
+                              size="small"
+                              sx={{
+                                bgcolor: alpha(
+                                  getStatusColor(campaign?.status),
+                                  0.15
+                                ),
+                                color: getStatusColor(campaign?.status),
+                                fontWeight: 700,
+                                px: 1,
+                                borderRadius: 1,
+                                textTransform: "capitalize",
+                              }}
+                            />
                           </TableCell>
-                          <TableCell align="right">
-                            {formatCurrency(getVal(campaign?.budgetSpent, 0))}
+
+                          {/* Budget */}
+                          <TableCell align="center" sx={{ py: 2 }}>
+                            <Stack spacing={1} alignItems="center">
+                              <Box textAlign="center">
+                                <Typography variant="body2" fontWeight={600}>
+                                  {formatCurrency(campaign?.budgetTotal || 0)}
+                                </Typography>
+                                <Typography
+                                  variant="caption"
+                                  color="text.secondary"
+                                >
+                                  Total
+                                </Typography>
+                              </Box>
+
+                              <Box textAlign="center">
+                                <Typography variant="body2" fontWeight={600}>
+                                  {formatCurrency(campaign?.budgetSpent || 0)}
+                                </Typography>
+                                <Typography
+                                  variant="caption"
+                                  color="text.secondary"
+                                >
+                                  Spent
+                                </Typography>
+                              </Box>
+
+                              <Box width="100%" maxWidth={120} mt={1}>
+                                <LinearProgress
+                                  variant="determinate"
+                                  value={(util || 0) * 100}
+                                  sx={{
+                                    height: 8,
+                                    borderRadius: 4,
+                                    bgcolor: theme.palette.grey[200],
+                                    "& .MuiLinearProgress-bar": {
+                                      borderRadius: 4,
+                                      bgcolor:
+                                        util > 0.7
+                                          ? theme.palette.error.main
+                                          : util > 0.4
+                                          ? theme.palette.warning.main
+                                          : theme.palette.success.main,
+                                    },
+                                  }}
+                                />
+                                <Typography variant="caption" fontWeight={600}>
+                                  {formatPercent(util || 0)}
+                                </Typography>
+                              </Box>
+                            </Stack>
                           </TableCell>
-                          <TableCell align="right">
-                            {formatCurrency(
-                              getVal(
-                                campaign?.remainingBudget,
-                                (campaign?.budgetTotal || 0) -
-                                  (campaign?.budgetSpent || 0)
-                              )
-                            )}
+
+                          {/* Performance */}
+                          <TableCell align="center" sx={{ py: 2 }}>
+                            <Grid container spacing={1}>
+                              <Grid item xs={4}>
+                                <Box textAlign="center">
+                                  <Typography variant="body2" fontWeight={700}>
+                                    {formatNumber(campaign?.installsCount || 0)}
+                                  </Typography>
+                                  <Typography
+                                    variant="caption"
+                                    color="text.secondary"
+                                  >
+                                    Installs
+                                  </Typography>
+                                </Box>
+                              </Grid>
+                              <Grid item xs={4}>
+                                <Box textAlign="center">
+                                  <Typography variant="body2" fontWeight={700}>
+                                    {formatNumber(campaign?.reviewCount || 0)}
+                                  </Typography>
+                                  <Typography
+                                    variant="caption"
+                                    color="text.secondary"
+                                  >
+                                    Reviews
+                                  </Typography>
+                                </Box>
+                              </Grid>
+                              <Grid item xs={4}>
+                                <Box textAlign="center">
+                                  <Typography variant="body2" fontWeight={700}>
+                                    {formatNumber(campaign?.clickCount || 0)}
+                                  </Typography>
+                                  <Typography
+                                    variant="caption"
+                                    color="text.secondary"
+                                  >
+                                    Clicks
+                                  </Typography>
+                                </Box>
+                              </Grid>
+                            </Grid>
                           </TableCell>
-                          <TableCell align="right">
-                            <Box
-                              display="flex"
-                              alignItems="center"
-                              justifyContent="flex-end"
-                            >
-                              <Typography fontWeight={600} mr={1}>
-                                {formatPercent(util ?? 0)}
-                              </Typography>
-                              <LinearProgress
-                                variant="determinate"
-                                value={(util ?? 0) * 100}
-                                sx={{
-                                  width: 100,
-                                  mx: 0.5,
-                                  height: 8,
-                                  borderRadius: 4,
-                                  background: theme.palette.grey,
-                                  "& .MuiLinearProgress-bar": {
-                                    backgroundColor: getStatusColor(
-                                      campaign.status
-                                    ),
-                                  },
-                                }}
-                              />
-                            </Box>
+
+                          {/* Metrics */}
+                          <TableCell align="center" sx={{ py: 2 }}>
+                            <Stack spacing={1} alignItems="center">
+                              <Box>
+                                <Typography variant="body2" fontWeight={700}>
+                                  {formatPercent(campaign?.ctr || 0)}
+                                </Typography>
+                                <Typography
+                                  variant="caption"
+                                  color="text.secondary"
+                                >
+                                  CTR
+                                </Typography>
+                              </Box>
+                              <Box>
+                                <Typography variant="body2" fontWeight={700}>
+                                  {campaign?.cpc !== undefined &&
+                                  campaign?.cpc !== null
+                                    ? formatCurrency(campaign.cpc)
+                                    : "—"}
+                                </Typography>
+                                <Typography
+                                  variant="caption"
+                                  color="text.secondary"
+                                >
+                                  CPC
+                                </Typography>
+                              </Box>
+                            </Stack>
                           </TableCell>
-                          <TableCell align="right">
-                            {campaign?.costPerInstall !== undefined
-                              ? formatCurrency(campaign.costPerInstall)
-                              : "—"}
+
+                          {/* Timeline */}
+                          <TableCell align="center" sx={{ py: 2 }}>
+                            <Stack spacing={0.5} alignItems="center">
+                              <Tooltip
+                                title={`Created: ${formatDate(
+                                  campaign?.createdAt
+                                )}`}
+                              >
+                                <Box>
+                                  <Typography
+                                    variant="caption"
+                                    color="text.secondary"
+                                  >
+                                    Created
+                                  </Typography>
+                                  <Typography variant="body2" fontWeight={600}>
+                                    {formatShortDate(campaign?.createdAt)}
+                                  </Typography>
+                                </Box>
+                              </Tooltip>
+
+                              <Box display="flex" alignItems="center">
+                                <Typography variant="body2" fontWeight={600}>
+                                  {formatShortDate(campaign?.startDate)}
+                                </Typography>
+                                <ArrowForward
+                                  fontSize="small"
+                                  sx={{ mx: 0.5, color: "text.secondary" }}
+                                />
+                                <Typography variant="body2" fontWeight={600}>
+                                  {formatShortDate(campaign?.endDate)}
+                                </Typography>
+                              </Box>
+                            </Stack>
                           </TableCell>
-                          <TableCell align="right">
-                            {formatNumber(getVal(campaign?.installsCount, 0))}
-                          </TableCell>
-                          <TableCell align="right">
-                            {formatNumber(getVal(campaign?.reviewCount, 0))}
-                          </TableCell>
-                          <TableCell align="right">
-                            {formatNumber(getVal(campaign?.clickCount, 0))}
-                          </TableCell>
-                          <TableCell
-                            sx={{
-                              maxWidth: 260,
-                              whiteSpace: "nowrap",
-                              overflow: "hidden",
-                              textOverflow: "ellipsis",
-                            }}
-                          >
-                            {campaign?.packageName || "—"}
-                          </TableCell>
-                          <TableCell align="right">
-                            {formatPercent(getVal(campaign?.ctr, 0))}
-                          </TableCell>
-                          <TableCell align="right">
-                            {campaign?.cpc !== undefined &&
-                            campaign?.cpc !== null
-                              ? formatCurrency(campaign.cpc)
-                              : "—"}
-                          </TableCell>
-                          <TableCell>
-                            {formatDate(campaign?.createdAt)}
-                          </TableCell>
-                          <TableCell>
-                            {formatDate(campaign?.startDate)}
-                          </TableCell>
-                          <TableCell>{formatDate(campaign?.endDate)}</TableCell>
                         </TableRow>
                       );
                     })}
                   </TableBody>
                 </Table>
               </TableContainer>
+
+              {/* Empty State */}
+              {(!campaigns || campaigns.length === 0) && (
+                <Box py={6} textAlign="center">
+                  <Campaign
+                    sx={{ fontSize: 64, color: "text.disabled", mb: 1 }}
+                  />
+                  <Typography variant="h6" color="text.secondary">
+                    No campaigns found
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary" mt={1}>
+                    Try adjusting your filters or create a new campaign
+                  </Typography>
+                </Box>
+              )}
             </Paper>
           </Box>
         </Grow>
