@@ -16,6 +16,7 @@ import {
 import NotificationsIcon from "@mui/icons-material/Notifications";
 import MenuIcon from "@mui/icons-material/Menu";
 import axios from "axios";
+import dp from "./dp.gif"
 
 const StyledAppBar = styled(AppBar)(({ theme }) => ({
   backgroundColor: "#fff",
@@ -116,7 +117,7 @@ export default function TopBar({
 
             <IconButton onClick={handleMenuOpen} size="small">
               <Avatar
-                src={user?.avatar}
+                src={dp}
                 alt={nameValue ? nameValue : "Advertiser"}
                 sx={{
                   width: { xs: 28, sm: 32 },
