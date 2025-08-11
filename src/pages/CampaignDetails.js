@@ -834,7 +834,7 @@ const CampaignDetails = () => {
           </Grid>
 
           {/* Right Column */}
-          <Grid item xs={12} md={4}>
+          <Grid item xs={12} md="auto" sx={{ width: 360 }}>
             {/* Status Card */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
